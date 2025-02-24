@@ -1,0 +1,6 @@
+@MeTube_DevOps.Comments_HostAddress = http://localhost:5140
+
+GET {{MeTube_DevOps.Comments_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

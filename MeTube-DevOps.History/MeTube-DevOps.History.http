@@ -1,0 +1,6 @@
+@MeTube_DevOps.History_HostAddress = http://localhost:5186
+
+GET {{MeTube_DevOps.History_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

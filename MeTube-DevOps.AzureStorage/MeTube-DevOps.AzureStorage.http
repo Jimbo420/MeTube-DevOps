@@ -1,0 +1,6 @@
+@MeTube_DevOps.AzureStorage_HostAddress = http://localhost:5224
+
+GET {{MeTube_DevOps.AzureStorage_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
