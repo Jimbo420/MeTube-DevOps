@@ -1,6 +1,0 @@
-@Metube.Gateway_HostAddress = http://localhost:5020
-
-GET {{Metube.Gateway_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
