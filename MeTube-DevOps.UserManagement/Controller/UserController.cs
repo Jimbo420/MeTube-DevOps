@@ -1,16 +1,27 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using MeTube_DevOps.UserManagement.Repositories;
 using MeTube_DevOps.UserManagement.Data;
+using MeTube_DevOps.UserManagement.Entities;
+using AutoMapper;
+
 
 
 namespace MeTube_DevOps.UserManagement.Controller
 {
+
   [Route("api/[controller]")]
   [ApiController]
   public class UserController : ControllerBase
   {
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+
+    public UserController(IUnitOfWork unitOfWork, IMapper mapper)
+    {
+      _unitOfWork = unitOfWork;
+      _mapper = mapper;
+    }
 
 
     [HttpPost("signup")]
@@ -39,5 +50,4 @@ namespace MeTube_DevOps.UserManagement.Controller
       return Ok(new { Message = "User signed up successfully" });
     }
   }
-}
 }
