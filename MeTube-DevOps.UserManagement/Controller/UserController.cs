@@ -4,6 +4,8 @@ using MeTube_DevOps.UserManagement.Repositories;
 using MeTube_DevOps.UserManagement.Data;
 using MeTube_DevOps.UserManagement.Entities;
 using AutoMapper;
+using MeTube_DevOps.UserManagement.DTO;
+
 
 
 
