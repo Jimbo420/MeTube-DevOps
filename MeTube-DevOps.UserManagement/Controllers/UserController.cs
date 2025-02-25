@@ -9,7 +9,7 @@ using MeTube_DevOps.UserManagement.DTO;
 
 
 
-namespace MeTube_DevOps.UserManagement.Controller
+namespace MeTube_DevOps.UserManagement.Controllers
 {
 
   [Route("api/[controller]")]
