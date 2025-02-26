@@ -1,6 +1,6 @@
-@MeTube_DevOps.UserManagement_HostAddress = http://localhost:5178
+@MeTube_DevOps_UserManagement_HostAddress = http://localhost:5178
 
-GET {{MeTube_DevOps.UserManagement_HostAddress}}/weatherforecast/
+GET {{MeTube_DevOps_UserManagement_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
