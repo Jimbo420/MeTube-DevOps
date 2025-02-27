@@ -6,7 +6,7 @@ services:
     container_name: MeTube.User-DB
     hostname: MeTube.User-DB
     ports:
-      - "1433:1433"
+      - "${DB_PORT}:1433"
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=${DB_PASSWORD}
@@ -20,16 +20,16 @@ services:
       dockerfile: Metube.UserService/UserService/Dockerfile
     container_name: MeTube.User
     ports:
-      - "5000:5000"
+     - "${APP_PORT}:5000"
     environment:
-      - METUBE_USER_SERVICE_PORT=5000
-      - METUBE_USER_SERVICE_CONNECTION_STRING=Server=MeTube.User-DB,1433;Database=MeTubeUserDb;User Id=sa;Password=${DB_PASSWORD};Encrypt=Yes;TrustServerCertificate=Yes;
+      - DefaultConnection=${DB_CONNECTION_STRING}
     depends_on:
       - MeTube.User-DB
     restart: always
     volumes:
       - ./:/src  #Synkar hela projektmappen med containern för live kodändringar
-
+    env_file:
+      - .env
 volumes:
   MeTube.User-Volume:
     driver: local
