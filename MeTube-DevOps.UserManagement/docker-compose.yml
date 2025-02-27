@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  MeTube.User-DB: #Konfiguration för databasen
+  MeTube.User-DB:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: MeTube.User-DB
     hostname: MeTube.User-DB
@@ -12,24 +12,25 @@ services:
       - SA_PASSWORD=${DB_PASSWORD}
     restart: always
     volumes:
-      - MeTube.User-Volume:/var/opt/mssql  #Länkar till en volym för att spara databasen
+      - MeTube.User-Volume:/var/opt/mssql
 
-  MeTube.User: #Skapar och konfigurerar Imagen
+  MeTube.User:
     build:
       context: ./
-      dockerfile: Metube.UserService/UserService/Dockerfile
+      dockerfile: dockerfile-development
     container_name: MeTube.User
     ports:
-     - "${APP_PORT}:5000"
+      - "${APP_PORT}:5000"
     environment:
       - DefaultConnection=${DB_CONNECTION_STRING}
     depends_on:
       - MeTube.User-DB
     restart: always
     volumes:
-      - ./:/src  #Synkar hela projektmappen med containern för live kodändringar
+      - ./:/src
     env_file:
       - .env
+
 volumes:
   MeTube.User-Volume:
     driver: local

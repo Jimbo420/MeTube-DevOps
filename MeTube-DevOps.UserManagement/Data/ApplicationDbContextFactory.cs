@@ -8,15 +8,28 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            // Build config
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false)
-                .Build();
+            // // Build config
+            // var config = new ConfigurationBuilder()
+            //     .AddJsonFile("appsettings.json", optional: false)
+            //     .Build();
 
-            // Read conn string
-            var connectionString = config.GetConnectionString("DefaultConnection") 
-                ?? throw new InvalidOperationException(
-                    "Connection string 'DefaultConnection' not found.");
+            // // Read conn string
+            // var connectionString = config.GetConnectionString("DefaultConnection") 
+            //     ?? throw new InvalidOperationException(
+            //         "Connection string 'DefaultConnection' not found.");
+
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                var config = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", optional: true)
+                    .AddJsonFile("appsettings.Development.json", optional: true)
+                    .Build();
+
+                connectionString = config.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            }
 
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
             builder.UseSqlServer(connectionString);
