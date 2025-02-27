@@ -1,7 +1,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 EXPOSE 80
-COPY Metube.UserService/UserService ./
+COPY ./*.sln ./
+COPY ./MeTube-DevOps.UserManagement/*.csproj ./MeTube-DevOps.UserManagement/
 RUN dotnet restore
 RUN dotnet publish -c Release -o out
 
@@ -11,4 +12,4 @@ COPY --from=build /app/out .
 
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="${PATH}:/root/.dotnet/tools"
-ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--project", "Metube.UserService/UserService"]
+ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--project", "MeTube-DevOps.UserManagement"]
