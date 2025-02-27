@@ -13,9 +13,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Lägg till databaskoppling
+// var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlServer(connectionString));
+
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("DB_CONNECTION_STRING is not set.");
+}
 
 var app = builder.Build();
 
