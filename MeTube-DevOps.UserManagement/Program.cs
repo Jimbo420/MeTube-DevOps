@@ -1,18 +1,25 @@
-using Swashbuckle.AspNetCore.SwaggerGen;
-
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using MeTube_DevOps.UserManagement.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ Lägg till stöd för Controllers
+// Lägg till tjänster
 builder.Services.AddControllers();
-
-// ✅ Lägg till OpenAPI/Swagger support (om det behövs)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Lägg till databaskoppling
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
 var app = builder.Build();
 
-// ✅ Konfigurera HTTP-request pipeline
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -21,10 +28,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
-// ✅ Lägg till Controllers-mappning så att dina Controllers fungerar
 app.MapControllers();
-
 app.Run();
+
 
 

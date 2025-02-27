@@ -1,36 +1,34 @@
 version: "3.8"
 
 services:
-  MeTube.User-DB:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: MeTube.User-DB
-    hostname: MeTube.User-DB
-    ports:
-      - "${DB_PORT}:1433"
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=${DB_PASSWORD}
-    restart: always
-    volumes:
-      - MeTube.User-Volume:/var/opt/mssql
+  # metube-user-db:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: metube-user-db
+  #   hostname: metube-user-db
+  #   ports:
+  #     - "1444:1433"
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - SA_PASSWORD=YourSecretPass123
+  #   restart: always
+  #   volumes:
+  #     - metube-user-volume:/var/opt/mssql
 
-  MeTube.User:
+  metube-user:
     build:
-      context: ./
+      context: .
       dockerfile: dockerfile-development
-    container_name: MeTube.User
+    container_name: metube-user
     ports:
-      - "${APP_PORT}:5000"
+      - "5000:5000"
     environment:
-      - DefaultConnection=${DB_CONNECTION_STRING}
-    depends_on:
-      - MeTube.User-DB
+      - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
     restart: always
     volumes:
-      - ./:/src
+      - .:/app
     env_file:
       - .env
 
 volumes:
-  MeTube.User-Volume:
+  metube-user-volume:
     driver: local
