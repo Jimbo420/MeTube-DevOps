@@ -33,5 +33,13 @@ public class ApplicationDbContext : DbContext
             entity.Property(entity => entity.Role).IsRequired().HasDefaultValue("User");
         });
 
+        modelBuilder.Entity<User>().HasData(
+            new User { Id = 1, Username = "Alice", Password = "password123", Email = "alice@example.com", Role = "Admin" },
+            new User { Id = 2, Username = "Bob", Password = "securePass", Email = "bob@example.com", Role = "Admin" },
+            new User { Id = 3, Username = "Charlie", Password = "pass456", Email = "charlie@example.com", Role = "User" },
+            new User { Id = 4, Username = "Diana", Password = "dianaPass", Email = "diana@example.com", Role = "User" },
+            new User { Id = 5, Username = "Eve", Password = "evePass123", Email = "eve@example.com", Role = "User" }
+        );
+
     }
 }
