@@ -17,13 +17,17 @@ builder.Services.AddSwaggerGen();
 // builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //     options.UseSqlServer(connectionString));
 
-var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+// var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+// builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("DB_CONNECTION_STRING is not set.");
-}
-
+// if (string.IsNullOrEmpty(connectionString))
+// {
+//     throw new InvalidOperationException("DB_CONNECTION_STRING is not set.");
+// }
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    
 var app = builder.Build();
 
 // Middleware

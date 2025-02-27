@@ -7,6 +7,10 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=YourSecretPass123
+    healthcheck:
+      test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourSecretPass123", "-Q", "SELECT 1"]
+      interval: 10s
+      retries: 5
     restart: always
     volumes:
       - metube-user-volume:/var/opt/mssql
@@ -19,7 +23,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DB_CONNECTION_STRING=Server=localhost,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
+      - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
     restart: always
     volumes:
       - ./data:/app/data

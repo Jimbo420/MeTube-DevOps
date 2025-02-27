@@ -25,6 +25,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
                 var config = new ConfigurationBuilder()
                     .AddJsonFile("appsettings.json", optional: true)
                     .AddJsonFile("appsettings.Development.json", optional: true)
+                    .AddEnvironmentVariables()
                     .Build();
 
                 connectionString = config.GetConnectionString("DefaultConnection")
