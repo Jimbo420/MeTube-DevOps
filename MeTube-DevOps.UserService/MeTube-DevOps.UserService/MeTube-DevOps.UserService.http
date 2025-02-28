@@ -1,0 +1,16 @@
+@MeTube_DevOps_UserService_HostAddress = http://localhost:5218
+
+GET {{MeTube_DevOps_UserService_HostAddress}}/api/User/manageUsers
+Accept: application/json
+
+###
+POST {{MeTube_DevOps_UserService_HostAddress}}/api/User/signup
+Content-Type: application/json
+
+{
+  "username": "testuser2",
+  "password": "password1",
+  "email": "test2@example.com",
+  "role": "Admin"
+}
+###
