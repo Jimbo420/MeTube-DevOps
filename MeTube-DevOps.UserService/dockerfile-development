@@ -3,6 +3,9 @@ WORKDIR /app
 
 COPY ./*.sln ./
 COPY ./MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+COPY ./MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
+COPY ./MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
+
 RUN dotnet restore
 
 COPY . .
