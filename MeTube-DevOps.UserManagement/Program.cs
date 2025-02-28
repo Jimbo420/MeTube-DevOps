@@ -4,13 +4,25 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using MeTube_DevOps.UserManagement.Data;
+using MeTube_DevOps.UserManagement.Repositories;
+using MeTube_DevOps.UserManagement.UserProfile;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add environment variables
+int PORT = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "80");
+
 // Lägg till tjänster
 builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Add unit of work
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Add profiles
+builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
+
 
 // Lägg till databaskoppling
 // var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
@@ -33,13 +45,16 @@ var app = builder.Build();
 // Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+//Console.WriteLine($"PORT: {PORT}");
+//app.Run($"http://localhost:{PORT}");
+
 app.Run();
 
 
