@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+      - Pipeline
     paths:
       - "MeTube-DevOps.UserService/**"
   workflow_dispatch:
