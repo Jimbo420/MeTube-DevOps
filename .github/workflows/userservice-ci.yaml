@@ -1,0 +1,48 @@
+name: Integration of UserService CI
+
+on:
+  push:
+    branches:
+      - main
+      - Pipeline
+  pull_request:
+    branches:
+      - main
+      - Pipeline
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      metube-user-db:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourSecretPass123
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Start application services
+        run: |
+          docker-compose -f docker-compose.yml up -d
+          sleep 10
+
+      - name: Run UserService Unit Tests
+        run: |
+          docker exec metube-user dotnet test --logger trx --results-directory /app/test-results
+
+      - name: Stop services
+        run: docker-compose down
