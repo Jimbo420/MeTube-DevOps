@@ -21,7 +21,7 @@ jobs:
 
     services:
       metube-user-db:
-        image: mcr.microsoft.com/mssql/server:2019-latest
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: YourSecretPass123
@@ -32,7 +32,7 @@ jobs:
           --health-cmd "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'" || exit 1
           --health-interval 10s
           --health-retries 10
-          --health-start-period=40s
+          --health-start-period=150s
 
     steps:
       - name: Checkout repository
@@ -44,11 +44,11 @@ jobs:
       - name: Manually pull SQL Server image
         run: docker pull mcr.microsoft.com/mssql/server:2019-latest
 
-      - name: Start application services
-        run: |
-          docker-compose -f docker-compose.yml up -d
-          echo "Waiting for db to start"
-          sleep 40
+      # - name: Start application services
+      #   run: |
+      #     docker-compose -f docker-compose.yml up -d
+      #     echo "Waiting for db to start"
+      #     sleep 40
 
       - name: Run UserService Unit Tests
         run: |
