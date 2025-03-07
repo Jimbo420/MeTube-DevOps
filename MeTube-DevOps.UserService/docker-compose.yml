@@ -16,21 +16,22 @@ services:
       - metube-user-volume:/var/opt/mssql
 
   metube-user:
+    image: metube-user
     build:
-      context: .
+      context: ./
       dockerfile: dockerfile-development
     container_name: metube-user
     ports:
-      - "5000:5000"
+      - "4030:80"
     environment:
       - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
     restart: always
     volumes:
-      - ./data:/app/data
+      - ./:/src
     depends_on:
       - metube-user-db
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
 
 volumes:
   metube-user-volume:

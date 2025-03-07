@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  integrate:
     runs-on: ubuntu-latest
 
     services:
