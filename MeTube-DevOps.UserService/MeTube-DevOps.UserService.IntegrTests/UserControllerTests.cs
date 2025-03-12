@@ -37,9 +37,24 @@ namespace MeTube_DevOps.UserService.IntegrationTests
             // Assert
             response.Status.Should().Be(200);
 
-            var users = JsonSerializer.Deserialize<List<User>>(await );
+            var users = JsonSerializer.Deserialize<List<User>>(await response.TextAsync(), _serializerOptions);
             users.Should().NotBeNull();
+            ArgumentNullException.ThrowIfNull(users);
+            users.Should().BeOfType<List<User>>();
 
+            var actual1 = users.FirstOrDefault(u => u.Id == expected1.Id);
+            actual1?.Id.Should().Be(expected1.Id);
+            actual1?.Username.Should().Be(expected1.Username);
+            actual1?.Email.Should().Be(expected1.Email);
+            actual1?.Role.Should().Be(expected1.Role);
+
+            var actual2 = users.FirstOrDefault(u => u.Id == expected2.Id);
+            actual2?.Id.Should().Be(expected2.Id);
+            actual2?.Username.Should().Be(expected2.Username);
+            actual2?.Email.Should().Be(expected2.Email);
+            actual2?.Role.Should().Be(expected2.Role);
+
+            _output.WriteLine($"items: Count={users.Count}");
         }
     }
 }
