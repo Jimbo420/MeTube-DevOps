@@ -16,5 +16,6 @@ WORKDIR /app
 COPY --from=build /app/out .
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="${PATH}:/root/.dotnet/tools"
+# RUN dotnet ef database update
 
 ENTRYPOINT ["dotnet", "/app/MeTube-DevOps.UserService.dll"]

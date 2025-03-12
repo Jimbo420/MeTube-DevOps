@@ -11,6 +11,7 @@ services:
       test: ["CMD", "sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourSecretPass123", "-Q", "SELECT 1"]
       interval: 10s
       retries: 5
+      
     restart: always
     volumes:
       - metube-user-volume:/var/opt/mssql
