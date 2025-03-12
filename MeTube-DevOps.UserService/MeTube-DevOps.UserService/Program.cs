@@ -1,5 +1,5 @@
 using MeTube_DevOps.UserService.Repositories;
-using MeTube_DevOps.UserService.UserProfile;
+using MeTube_DevOps.UserService.Profiles;
 using MeTube_DevOps.UserService.Data;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;

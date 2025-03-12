@@ -2,7 +2,7 @@ using AutoMapper;
 using MeTube_DevOps.UserService.DTO;
 using MeTube_DevOps.UserService.Entities;
 
-namespace MeTube_DevOps.UserService.UserProfile
+namespace MeTube_DevOps.UserService.Profiles
 {
     public class UserProfile : Profile
     {
