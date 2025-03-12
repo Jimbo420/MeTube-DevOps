@@ -1,3 +1,5 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 namespace MeTube.Client.Models
 {
     public partial class HistoryAdmin : ObservableValidator
