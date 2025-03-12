@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
-
+EXPOSE 80
 COPY ./*.sln ./
 COPY ./MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
 COPY ./MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
