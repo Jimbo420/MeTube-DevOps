@@ -102,7 +102,6 @@ jobs:
           ENTRYPOINT ["dotnet", "MeTube-DevOps.UserService.dll"]
           EOF
 
-      # Fixed step order - Create unit test Dockerfile with ALL project references
       - name: Create Unit Test Dockerfile
         run: |
           cd MeTube-DevOps.UserService
@@ -126,7 +125,6 @@ jobs:
           CMD ["dotnet", "test", "MeTube-DevOps.UserService.UnitTests"]
           EOF
 
-      # Then run unit tests
       - name: Run Unit Tests via Docker
         run: |
           cd MeTube-DevOps.UserService
@@ -139,11 +137,12 @@ jobs:
           docker compose -f docker-compose.ci.yml build
           docker compose -f docker-compose.ci.yml up -d
           
-          # Wait for SQL Server to start manually instead of relying on health checks
+          # Wait for SQL Server to start using log check instead of sqlcmd
           echo "Waiting for SQL Server to initialize..."
           for i in {1..30}; do
-            if docker compose -f docker-compose.ci.yml exec -T db /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT 1" -b; then
+            if docker compose -f docker-compose.ci.yml logs db 2>&1 | grep -q "Recovery is complete"; then
               echo "SQL Server is ready!"
+              sleep 5 # Add a small delay to ensure SQL Server is fully ready
               break
             fi
             echo "Attempt $i: SQL Server still initializing..."
@@ -188,7 +187,18 @@ jobs:
       - name: Apply Migrations
         run: |
           cd MeTube-DevOps.UserService
-          docker compose -f docker-compose.ci.yml exec -T userservice dotnet ef database update
+          # Use a wrapper script to bypass SSL issues with sqlcmd in EF tools
+          cat > run-migrations.sh << 'EOF'
+          #!/bin/bash
+          dotnet tool install -g dotnet-ef
+          export PATH="$PATH:/root/.dotnet/tools"
+          # Set the connection string with TrustServerCertificate=true
+          export ConnectionStrings__DefaultConnection="Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
+          dotnet ef database update --project MeTube-DevOps.UserService
+          EOF
+          chmod +x run-migrations.sh
+          docker compose -f docker-compose.ci.yml cp run-migrations.sh userservice:/app/
+          docker compose -f docker-compose.ci.yml exec -T userservice /bin/bash /app/run-migrations.sh
 
       - name: Create Integration Test Dockerfile
         run: |
