@@ -88,9 +88,20 @@ jobs:
       - name: Wait for service
         run: |
           echo "Waiting for service to be ready..."
-          until curl -s http://localhost:5218/health; do
+          timeout=60
+          while [[ $timeout -gt 0 ]]; do
+            if curl -s http://localhost:5218/health; then
+              echo "Service is up!"
+              break
+            fi
             sleep 5
+            ((timeout-=5))
           done
+          if [ $timeout -le 0 ]; then
+            echo "Service did not become ready in time"
+            exit 1
+          fi
+
           
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
