@@ -1,0 +1,53 @@
+@page "/signup"
+@using MeTube.Client.ViewModels.SignupViewModels
+@inject SignupViewModel ViewModel
+@* @using MeTube.Client.Services;
+@inject IUserService UserService; *@
+
+<link href="css/login_and_signup.css" rel="stylesheet" />
+@* <PageTitle>Signup</PageTitle> *@
+
+<div class="FormContainer">
+    <form>
+        <div class="FormText">
+            <h1>@titel</h1>
+            <p>Create an account here</p>
+            <hr/>
+        </div>
+        <label for="username">Username</label>
+        <input id="username" type="text" @bind="ViewModel.Username" placeholder="Enter your username" />
+        <p class="validationerror">@ViewModel.UsernameError</p>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" @bind="ViewModel.Email" placeholder="Enter your email" />
+        <p class="validationerror">@ViewModel.EmailError</p>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" @bind="ViewModel.Password" placeholder="Enter your password" />
+        <p class="validationerror">@ViewModel.PasswordError</p>
+
+
+
+        <button @onclick="() => ViewModel.SignupButton()" type="button">Create Account</button>
+        @if(!IsAuthenticated && UserRole != "Admin")
+        {
+            <p class="TextWithLink">Already have an account? <a href="/login">Log In</a></p>
+        }
+    </form>
+</div>
+
+@code{
+    private bool IsAuthenticated = false;
+    private string UserRole = string.Empty;
+    private string titel = "Sign up";
+
+    protected override async Task OnInitializedAsync()
+    {
+        @* Dictionary<string, string> response = await UserService.IsUserAuthenticated();
+        UserRole = response["Role"];
+        IsAuthenticated = Convert.ToBoolean(response["IsAuthenticated"]);
+
+        if (IsAuthenticated && UserRole == "Admin")
+            titel = "Create User Account"; *@
+    }
+}
