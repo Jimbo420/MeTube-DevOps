@@ -49,8 +49,7 @@ jobs:
 
     # Under "env", we can define environment variables that will be available in the virtual machine/container created above.
     env:
-      NAME: metube-user
-      CONTAINER_NAME: metube-user
+      ASPNETCORE_URLS: "http://localhost:5218"
     
     # "Steps" represents a sequence of tasks that will be executed as part of the job
     steps:
@@ -68,11 +67,11 @@ jobs:
         with:
           dotnet-version: 9.0.101
 
+      # Run the UserService
       - name: Run UserService
         run: |
-          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
+          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
 
-          
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
       # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
