@@ -49,7 +49,7 @@ jobs:
 
     # Under "env", we can define environment variables that will be available in the virtual machine/container created above.
     env:
-      ASPNETCORE_URLS: "http://localhost:5000"
+      ASPNETCORE_URLS: "http://+:5000"
     
     # "Steps" represents a sequence of tasks that will be executed as part of the job
     steps:
