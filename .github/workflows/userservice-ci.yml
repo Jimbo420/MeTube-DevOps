@@ -112,13 +112,8 @@ jobs:
           ENTRYPOINT ["dotnet", "MeTube-DevOps.UserService.dll"]
           EOF
 
-      - name: Unit Tests via Docker
-        run: |
-          cd MeTube-DevOps.UserService
-          docker build -t userservice-test -f ci.unittest.Dockerfile .
-          docker run --rm userservice-test
-          
-      - name: Create Test Dockerfile
+      # Fixed step order - Create unit test Dockerfile first
+      - name: Create Unit Test Dockerfile
         run: |
           cd MeTube-DevOps.UserService
           cat > ci.unittest.Dockerfile << EOF
@@ -137,6 +132,13 @@ jobs:
           # Run unit tests
           CMD ["dotnet", "test", "MeTube-DevOps.UserService.UnitTests"]
           EOF
+
+      # Then run unit tests
+      - name: Run Unit Tests via Docker
+        run: |
+          cd MeTube-DevOps.UserService
+          docker build -t userservice-test -f ci.unittest.Dockerfile .
+          docker run --rm userservice-test
 
       - name: Build and Start Services
         run: |
@@ -169,7 +171,7 @@ jobs:
       - name: Apply Migrations
         run: |
           cd MeTube-DevOps.UserService
-          docker compose -f docker-compose.ci.yml exec userservice dotnet ef database update
+          docker compose -f docker-compose.ci.yml exec -T userservice dotnet ef database update
 
       - name: Create Integration Test Dockerfile
         run: |
@@ -213,7 +215,10 @@ jobs:
           
           # Build and run integration tests
           docker build -t userservice-integration-test -f ci.integrationtest.Dockerfile .
-          docker run --network=metube-devops_userservice_default userservice-integration-test
+          # Use the correct network name (docker compose network name format)
+          NETWORK_NAME=$(docker compose -f docker-compose.ci.yml ps --format json | grep -o '"Networks":"[^"]*"' | head -n1 | cut -d'"' -f4)
+          echo "Using network: $NETWORK_NAME"
+          docker run --network=$NETWORK_NAME userservice-integration-test
         
       - name: Cleanup
         if: always()
