@@ -15,27 +15,6 @@ jobs:
   integrate:
     runs-on: ubuntu-latest
     
-    services:
-      sql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: YourSecretPass123
-          MSSQL_PID: Express
-          MSSQL_AGENT_ENABLED: "false"
-          MSSQL_ENABLE_HADR: "0"
-          MSSQL_MEMORY_LIMIT_MB: "1024"
-        ports:
-          - "1433:1433"
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --health-start-period 20s
-          --memory=2g
-          --cpus=1.0
-
     env:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://localhost:5218"
@@ -44,37 +23,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Start SQL Server
+        run: |
+          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourSecretPass123" \
+            -e "MSSQL_PID=Express" \
+            -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+      
       - name: Verify SQL Server
         run: |
+          echo "Waiting for SQL Server to start..."
           for i in {1..30}; do
-            if /opt/mssql-tools/bin/sqlcmd -S . -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"; then
+            if docker exec $(docker ps -q) /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"; then
               echo "SQL Server is ready!"
-              exit 0
+              break
             fi
             echo "Attempt $i: Waiting for SQL Server..."
-            sleep 2
+            sleep 5
+            if [ $i -eq 30 ]; then
+              echo "SQL Server failed to start. Checking logs..."
+              docker logs $(docker ps -q)
+              exit 1
+            fi
           done
-          echo "SQL Server failed to start. Checking logs..."
-          docker logs $(docker ps -q --filter "ancestor=mcr.microsoft.com/mssql/server:2019-latest")
-          exit 1
       
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
 
       - name: Install EF Core CLI
-        run: |
-          dotnet tool install --global dotnet-ef
-          dotnet tool restore
+        run: dotnet tool install --global dotnet-ef
           
       - name: Apply Migrations
         run: |
           cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
           dotnet ef database update --verbose
-
+      
       - name: Build Solution
         run: dotnet build MeTube-DevOps.UserService
-
+      
       - name: Run UserService
         run: |
           cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
@@ -82,24 +68,20 @@ jobs:
           
       - name: Wait for UserService
         run: |
-          max_attempts=30
-          counter=0
           echo "Waiting for UserService to start..."
-          while [ $counter -lt $max_attempts ]
-          do
-            if curl -s http://localhost:5218/health | grep -q "Healthy"; then
+          for i in {1..30}; do
+            if curl -sSf http://localhost:5218/health > /dev/null 2>&1; then
               echo "UserService is ready!"
               break
             fi
-            counter=$((counter+1))
-            echo "Attempt $counter of $max_attempts"
+            echo "Attempt $i: Waiting for UserService..."
             sleep 5
-            if [ $counter -eq $max_attempts ]; then
-              echo "UserService failed to start. Logs:"
+            if [ $i -eq 30 ]; then
+              echo "UserService failed to start. Checking logs..."
               cat userservice.log
               exit 1
             fi
           done
-
+      
       - name: Test
         run: dotnet test MeTube-DevOps.UserService
