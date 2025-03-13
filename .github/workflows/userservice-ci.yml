@@ -30,30 +30,18 @@ jobs:
             --name sql-server \
             -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
 
-      - name: Debug SQL Server container
+      - name: Verify SQL Server
         run: |
-          echo "Checking if container is running..."
-          docker ps
-          
-          echo "Checking container logs..."
-          docker logs sql-server
-          
-          echo "Exploring container paths..."
-          docker exec sql-server ls -la /opt || echo "No /opt directory"
-          docker exec sql-server find / -name "sqlcmd" 2>/dev/null || echo "sqlcmd not found"
-      
-      - name: Verify SQL Server with TCP check
-        run: |
-          echo "Waiting for SQL Server port to be ready..."
+          echo "Waiting for SQL Server to start..."
           for i in {1..30}; do
-            if nc -z localhost 1433; then
-              echo "SQL Server port is open!"
+            if docker exec sql-server /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"; then
+              echo "SQL Server is ready!"
               break
             fi
-            echo "Attempt $i: Waiting for SQL Server port..."
+            echo "Attempt $i: Waiting for SQL Server to initialize..."
             sleep 5
             if [ $i -eq 30 ]; then
-              echo "SQL Server port not available. Checking logs..."
+              echo "SQL Server failed to initialize. Checking logs..."
               docker logs sql-server
               exit 1
             fi
@@ -62,22 +50,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
-
-      - name: Install SQL Tools
-        run: |
-          echo "Installing SQL tools for verification..."
-          apt-get update && apt-get install -y unixodbc-dev
-          curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-          apt-get update
-          ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
-          export PATH="$PATH:/opt/mssql-tools/bin"
-
-      - name: Test SQL Connection
-        run: |
-          echo "Testing SQL connection from host..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"
 
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
@@ -94,6 +66,7 @@ jobs:
         run: |
           cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
           nohup dotnet run > userservice.log 2>&1 &
+          echo $! > userservice.pid
           
       - name: Wait for UserService
         run: |
@@ -114,3 +87,10 @@ jobs:
       
       - name: Test
         run: dotnet test MeTube-DevOps.UserService
+        
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f userservice.pid ]; then
+            kill $(cat userservice.pid) || true
+          fi
