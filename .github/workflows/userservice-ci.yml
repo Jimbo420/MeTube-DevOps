@@ -17,20 +17,18 @@ jobs:
     
     services:
       sql:
-        image: mcr.microsoft.com/mssql/server:2019-latest  # Use 2019 version which is more stable
+        image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: YourSecretPass123
-          MSSQL_PID: Express    # Use Express edition for lighter resource usage
-          # Disable unnecessary services
+          MSSQL_PID: Express
           MSSQL_AGENT_ENABLED: "false"
           MSSQL_ENABLE_HADR: "0"
-          # Set memory limits
           MSSQL_MEMORY_LIMIT_MB: "1024"
         ports:
-          - 1433:1433
+          - "1433:1433"
         options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S . -U sa -P YourSecretPass123 -Q 'SELECT 1'" 
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -41,7 +39,7 @@ jobs:
     env:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://localhost:5218"
-      DB_CONNECTION_STRING: "Server=.,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Connect Timeout=30"
+      DB_CONNECTION_STRING: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Connect Timeout=30"
     
     steps:
       - uses: actions/checkout@v4
