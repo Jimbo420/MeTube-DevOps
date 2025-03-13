@@ -51,12 +51,6 @@ jobs:
         with:
           dotnet-version: 9.0.101
 
-      - name: Check appsettings.json
-        run: |
-          echo "Checking API configuration..."
-          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
-          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.Development.json
-
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
           
@@ -75,7 +69,55 @@ jobs:
           dotnet tool install --global Microsoft.Playwright.CLI
           playwright install
       
-      - name: Run directly with tests
+      - name: Run Unit Tests
         run: |
           cd MeTube-DevOps.UserService
-          dotnet test
+          dotnet test MeTube-DevOps.UserService.UnitTests
+      
+      # New explicit service launch step
+      - name: Start UserService
+        run: |
+          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
+          # Launch with explicit binding to all interfaces (0.0.0.0)
+          nohup dotnet run --urls="http://0.0.0.0:5218" > userservice.log 2>&1 &
+          echo $! > /tmp/userservice.pid
+          
+          # Wait for service to start
+          echo "Waiting for UserService to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:5218/health > /dev/null; then
+              echo "UserService is ready!"
+              break
+            fi
+            
+            if [ $i -eq 10 ] || [ $i -eq 20 ]; then
+              echo "Checking logs after attempt $i:"
+              tail -20 userservice.log
+              echo "Process status:"
+              ps -p $(cat /tmp/userservice.pid) || echo "Process not running!"
+            fi
+            
+            echo "Attempt $i: Waiting for UserService..."
+            sleep 2
+            
+            if [ $i -eq 30 ]; then
+              echo "UserService failed to start. Full logs:"
+              cat userservice.log
+              exit 1
+            fi
+          done
+      
+      - name: Run Integration Tests
+        run: |
+          cd MeTube-DevOps.UserService
+          dotnet test MeTube-DevOps.UserService.IntegrTests
+        
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f /tmp/userservice.pid ]; then
+            kill $(cat /tmp/userservice.pid) || true
+            echo "UserService stopped"
+          fi
+          docker stop sql-server || true
+          docker rm sql-server || true
