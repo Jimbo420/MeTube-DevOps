@@ -78,7 +78,7 @@ jobs:
 
       # Build the Docker image for the UserService
       - name: Build Docker image
-        run: docker build -t $CONTAINER_NAME MeTube-DevOps.UserService
+        run: docker build -t $CONTAINER_NAME metube-devopsuserservice
 
       # Run the Docker container for the UserService
       - name: Run Docker container

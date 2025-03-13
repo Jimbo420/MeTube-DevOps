@@ -49,6 +49,7 @@ namespace MeTube_DevOps.UserService.Controllers
         return Ok(userDto);
     }
 
+    // POST: signup
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
