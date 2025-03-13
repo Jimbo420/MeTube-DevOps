@@ -2,7 +2,7 @@
 # GitHub Actions workflow to test the MeTube-DevOps.UserService microservice
 #
 
-name: Integrate MeTube-DevOps.UserService
+name: MeTube-DevOps.UserService CI
 
 # Controls when the workflow will run
 on:
@@ -13,20 +13,18 @@ on:
   #   ("/**" means "all subfolders recursively").
   # As a result, the workflow will only run when changes are made to the UserService microservice.
   push:
-    branches:
-      - GitHubActions-AB
+    branches: [GitHubActions-AB]
     paths:
-      - MeTube-DevOps.UserService/**
+      - "MeTube-DevOps.UserService/**"
 
   # This configuration triggers the workflow:
   # - On a "pull_request" ...
   # - ... to the "main" branch ...
   # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
   pull_request:
-    branches:
-      - GitHubActions-AB
+    branches: [GitHubActions-AB]
     paths:
-      - MeTube-DevOps.UserService/**
+      - "MeTube-DevOps.UserService/**"
 
   # The configuration allows the workflow to be triggers manually through the GitHub Actions user interface.
   # When choosing the workflow in the left margin under the Actions tab in GitHub's Web UI,
@@ -36,49 +34,70 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 # Jobs are defined as entries under "jobs"
 jobs:
-  # This workflow contains a single job called "integrate" (the name will be shown in the workflow's output when it's run).
+  # This workflow contains a single job called "build-and-test" (the name will be shown in the workflow's output when it's run).
   # We can call this anything we like.
-  integrate:
+  build-and-test:
     # Runs on the latest version of Ubuntu
     # GitHub will create a virtual machine or container, where we can choose what image to use under "runs-on"
     # In this case, the virtual machine/container is based on the latest version of Ubuntu (a Linux distro)
     runs-on: ubuntu-latest
 
-    # Under "env", we can define environment variables that will be available in the virtual machine/container created above.
-    env:
-      ASPNETCORE_URLS: "http://localhost:5218"
+    # Set up SQL Server as a service container
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourSecretPass123
+        ports:
+          - 1433:1433
+        # Health check to ensure database is ready
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1' || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     # "Steps" represents a sequence of tasks that will be executed as part of the job
     steps:
-      # The "uses" instruction is used to execute a pre-defined action
-      # In this case, the "actions/checkout@v4" is used
-      # This action basically does a "git clone" in the virtual machine/container created above to copy this repository to it
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # This pre-defined action installs Dotnet in the virtual machine/container created above
-      # A "uses" action can be configured using a "with" section.
-      # In this case, the version of dotnet to install is configured to version 9.0.101.
-      # This means we can now run "dotnet" commands in the virtual machine/container created above
-      - uses: actions/setup-dotnet@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
 
-      # Run the UserService
-      - name: Run UserService
-        run: |
-          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
+      - name: Display folder structure
+        run: find MeTube-DevOps.UserService -type f -not -path "*/bin/*" -not -path "*/obj/*" | sort
 
-      # Wait for the UserService to start
-      - name: Wait for UserService
-        run: |
-          sleep 120
+      - name: Restore dependencies
+        run: dotnet restore MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln
 
-      # This step is given the name "Test"
-      # Then the "run" instruction is used to run a command inside the virtual machine/container created above
-      # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
-      # - The "dotnet test" command will find the Solution file "MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln"
-      # - The Solution file contains a project reference to "MeTube-DevOps.UserService/MeTube-DevOps.UserServiceTests/MeTube-DevOps.UserServiceTests.csproj"
-      # - The project file contains information about the project being of type "xUnit"
-      # - The "dotnet test" command finds all tests in MeTube-DevOps.UserServiceTests and executes them
-      - name: Test
-        run: dotnet test MeTube-DevOps.UserService
+      - name: Build
+        run: dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln --configuration Release --no-restore
+
+      # Run only unit tests first (faster feedback)
+      - name: Run unit tests
+        run: dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.UnitTests/MeTube-DevOps.UserService.UnitTests.csproj --no-restore --verbosity normal
+
+      # Update appsettings for tests to use the correct connection string
+      - name: Configure connection string
+        run: |
+          sed -i 's|Server=localhost;Database=MeTubeUserDb;|Server=localhost,1433;Database=MeTubeUserDb;|g' MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
+          sed -i 's|Server=localhost;Database=MeTubeUserDb;|Server=localhost,1433;Database=MeTubeUserDb;|g' MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/appsettings.json
+          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
+
+      # Start the service for integration tests
+      - name: Start UserService
+        run: |
+          dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj
+          ASPNETCORE_URLS="http://localhost:5218" nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
+          echo "Waiting for service to start..."
+          sleep 10
+          # Check if the service is running
+          curl -v http://localhost:5218/health || echo "Service not responding, continuing anyway"
+
+      # Run integration tests
+      - name: Run integration tests
+        run: dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/MeTube-DevOps.UserService.IntegrTests.csproj --no-restore --verbosity normal
