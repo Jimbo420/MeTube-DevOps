@@ -72,6 +72,11 @@ jobs:
         run: |
           nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
 
+      # Wait for the UserService to start
+      - name: Wait for UserService
+        run: |
+          sleep 30    
+
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
       # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
