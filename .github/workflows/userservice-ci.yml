@@ -112,7 +112,7 @@ jobs:
           ENTRYPOINT ["dotnet", "MeTube-DevOps.UserService.dll"]
           EOF
 
-      # Fixed step order - Create unit test Dockerfile first
+      # Fixed step order - Create unit test Dockerfile with ALL project references
       - name: Create Unit Test Dockerfile
         run: |
           cd MeTube-DevOps.UserService
@@ -120,10 +120,13 @@ jobs:
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
           
-          # Copy only files needed for restore first for better caching
+          # Copy ALL project files needed for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
+          COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
+          
+          # Restore packages
           RUN dotnet restore
           
           # Copy the rest of the source
@@ -189,8 +192,9 @@ jobs:
               npx playwright install-deps && \
               npx playwright install chromium
           
-          # Copy only files needed for restore first for better caching
+          # Copy ALL project files for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
           COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
           RUN dotnet restore
