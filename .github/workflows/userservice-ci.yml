@@ -2,13 +2,11 @@ name: Integrate MeTube-DevOps.UserService
 
 on:
   push:
-    branches:
-      - SSCITEST
+    branches: [ SSCITEST ]
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
-    branches:
-      - SSCITEST
+    branches: [ SSCITEST ]
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:
@@ -19,40 +17,48 @@ jobs:
     
     services:
       sql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+        image: mcr.microsoft.com/mssql/server:2019-latest  # Use 2019 version which is more stable
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: YourSecretPass123
-          # Remove memory limit as it might be causing issues
-          MSSQL_PID: Developer
-          # Add these settings for container stability
+          MSSQL_PID: Express    # Use Express edition for lighter resource usage
+          # Disable unnecessary services
           MSSQL_AGENT_ENABLED: "false"
           MSSQL_ENABLE_HADR: "0"
+          # Set memory limits
+          MSSQL_MEMORY_LIMIT_MB: "1024"
         ports:
           - 1433:1433
         options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'" 
-          --health-interval 20s
-          --health-timeout 10s
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S . -U sa -P YourSecretPass123 -Q 'SELECT 1'" 
+          --health-interval 10s
+          --health-timeout 5s
           --health-retries 5
           --health-start-period 20s
+          --memory=2g
+          --cpus=1.0
 
     env:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://localhost:5218"
-      DB_CONNECTION_STRING: "Server=localhost,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
+      DB_CONNECTION_STRING: "Server=.,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Connect Timeout=30"
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Debug SQL Server
+      - name: Verify SQL Server
         run: |
-          echo "Checking SQL Server logs..."
-          docker logs $(docker ps -q --filter "ancestor=mcr.microsoft.com/mssql/server:2022-latest")
-          echo "Checking SQL Server container status..."
-          docker ps -a
-          echo "Testing direct connection..."
-          /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"
+          for i in {1..30}; do
+            if /opt/mssql-tools/bin/sqlcmd -S . -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"; then
+              echo "SQL Server is ready!"
+              exit 0
+            fi
+            echo "Attempt $i: Waiting for SQL Server..."
+            sleep 2
+          done
+          echo "SQL Server failed to start. Checking logs..."
+          docker logs $(docker ps -q --filter "ancestor=mcr.microsoft.com/mssql/server:2019-latest")
+          exit 1
       
       - uses: actions/setup-dotnet@v4
         with:
