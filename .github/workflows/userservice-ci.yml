@@ -23,15 +23,19 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: YourSecretPass123
-          MSSQL_MEMORY_LIMIT_MB: '2048'
+          # Remove memory limit as it might be causing issues
+          MSSQL_PID: Developer
+          # Add these settings for container stability
+          MSSQL_AGENT_ENABLED: "false"
+          MSSQL_ENABLE_HADR: "0"
         ports:
           - 1433:1433
         options: >-
           --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'" 
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 3
-          --memory=2048m
+          --health-interval 20s
+          --health-timeout 10s
+          --health-retries 5
+          --health-start-period 20s
 
     env:
       ASPNETCORE_ENVIRONMENT: Development
