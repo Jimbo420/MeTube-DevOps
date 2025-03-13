@@ -42,62 +42,65 @@ jobs:
     # In this case, the virtual machine/container is based on the latest version of Ubuntu (a Linux distro)
     runs-on: ubuntu-latest
 
-    # Set up SQL Server as a service container
-    services:
-      sql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: YourSecretPass123
-        ports:
-          - 1433:1433
-        # Health check to ensure database is ready
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1' || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    # "Steps" represents a sequence of tasks that will be executed as part of the job
+    # Create a custom network for the containers to communicate
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Create Docker network
+        run: docker network create metube-network
+
+      - name: Setup SQL Server
+        run: |
+          docker run -d --name sqlserver --network metube-network \
+            -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourSecretPass123" \
+            -p 1433:1433 mcr.microsoft.com/mssql/server:2019-latest
+
+          # Wait for SQL Server to be ready
+          echo "Waiting for SQL Server to start..."
+          sleep 10s
+          docker exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT 1" || exit 1
+
+      # Run unit tests directly using .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
 
-      - name: Display folder structure
-        run: find MeTube-DevOps.UserService -type f -not -path "*/bin/*" -not -path "*/obj/*" | sort
-
       - name: Restore dependencies
         run: dotnet restore MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln
 
-      - name: Build
-        run: dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln --configuration Release --no-restore
-
-      # Run only unit tests first (faster feedback)
       - name: Run unit tests
-        run: dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.UnitTests/MeTube-DevOps.UserService.UnitTests.csproj --no-restore --verbosity normal
+        run: dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.UnitTests/MeTube-DevOps.UserService.UnitTests.csproj --verbosity normal
 
-      # Update appsettings for tests to use the correct connection string
-      - name: Configure connection string
+      # Build and run service using Docker
+      - name: Build Docker image
         run: |
-          sed -i 's|Server=localhost;Database=MeTubeUserDb;|Server=localhost,1433;Database=MeTubeUserDb;|g' MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
-          sed -i 's|Server=localhost;Database=MeTubeUserDb;|Server=localhost,1433;Database=MeTubeUserDb;|g' MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/appsettings.json
-          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
+          docker build -t metube-userservice \
+            -f MeTube-DevOps.UserService/MeTube-DevOps.UserService/Dockerfile \
+            ./MeTube-DevOps.UserService
 
-      # Start the service for integration tests
-      - name: Start UserService
+      - name: Run UserService container
         run: |
-          dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj
-          ASPNETCORE_URLS="http://localhost:5218" nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
+          # Modify the connection string in the container
+          docker run -d --name userservice --network metube-network \
+            -e "ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True" \
+            -p 5218:80 metube-userservice
+
           echo "Waiting for service to start..."
-          sleep 10
-          # Check if the service is running
+          sleep 10s
+          # Check if service is running
           curl -v http://localhost:5218/health || echo "Service not responding, continuing anyway"
 
-      # Run integration tests
+      # Run integration tests with adjusted connection string
       - name: Run integration tests
-        run: dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/MeTube-DevOps.UserService.IntegrTests.csproj --no-restore --verbosity normal
+        run: |
+          # Update connection string in tests to point to the Docker container
+          sed -i 's|Server=localhost;Database=MeTubeUserDb;|Server=localhost,1433;Database=MeTubeUserDb;|g' MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/appsettings.json
+
+          # Run integration tests
+          dotnet test MeTube-DevOps.UserService/MeTube-DevOps.UserService.IntegrTests/MeTube-DevOps.UserService.IntegrTests.csproj \
+            --verbosity normal
