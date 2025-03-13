@@ -29,23 +29,31 @@ jobs:
             -e "MSSQL_PID=Express" \
             --name sql-server \
             -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
-      
-      - name: Verify SQL Server
+
+      - name: Debug SQL Server container
         run: |
-          echo "Waiting for SQL Server to start..."
+          echo "Checking if container is running..."
+          docker ps
+          
+          echo "Checking container logs..."
+          docker logs sql-server
+          
+          echo "Exploring container paths..."
+          docker exec sql-server ls -la /opt || echo "No /opt directory"
+          docker exec sql-server find / -name "sqlcmd" 2>/dev/null || echo "sqlcmd not found"
+      
+      - name: Verify SQL Server with TCP check
+        run: |
+          echo "Waiting for SQL Server port to be ready..."
           for i in {1..30}; do
-            # Check if container is running
-            if [ "$(docker inspect -f '{{.State.Running}}' sql-server 2>/dev/null)" == "true" ]; then
-              # Run sqlcmd inside the container
-              if docker exec sql-server /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION" -b; then
-                echo "SQL Server is ready!"
-                break
-              fi
+            if nc -z localhost 1433; then
+              echo "SQL Server port is open!"
+              break
             fi
-            echo "Attempt $i: Waiting for SQL Server..."
+            echo "Attempt $i: Waiting for SQL Server port..."
             sleep 5
             if [ $i -eq 30 ]; then
-              echo "SQL Server failed to start. Checking logs..."
+              echo "SQL Server port not available. Checking logs..."
               docker logs sql-server
               exit 1
             fi
@@ -54,6 +62,22 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
+
+      - name: Install SQL Tools
+        run: |
+          echo "Installing SQL tools for verification..."
+          apt-get update && apt-get install -y unixodbc-dev
+          curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+          apt-get update
+          ACCEPT_EULA=Y apt-get install -y msodbcsql17 mssql-tools
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+          export PATH="$PATH:/opt/mssql-tools/bin"
+
+      - name: Test SQL Connection
+        run: |
+          echo "Testing SQL connection from host..."
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"
 
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
