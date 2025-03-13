@@ -41,7 +41,7 @@ namespace MeTube_DevOps.UserService.Controllers
         var user = await _unitOfWork.Users.GetUserByIdAsync(id);
         if (user == null)
         {
-            return NotFound(new { Message = "User not found" });
+            return NotFound(new { Message = "User is not found" });
         }
         var userDto = _mapper.Map<UserDto>(user);
         return Ok(userDto);
