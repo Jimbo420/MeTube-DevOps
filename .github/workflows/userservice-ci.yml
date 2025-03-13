@@ -40,8 +40,6 @@ jobs:
         run: |
           cd MeTube-DevOps.UserService
           cat > docker-compose.ci.yml << EOF
-          version: '3.8'
-          
           services:
             db:
               image: mcr.microsoft.com/mssql/server:2019-latest
@@ -79,13 +77,15 @@ jobs:
                 start_period: 10s
           EOF
           
-          # Create a CI-specific Dockerfile
+          # Create a CI-specific Dockerfile - FIXED to include ALL project files
           cat > ci.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
           WORKDIR /app
           
-          # Copy only files needed for restore first for better caching
+          # Copy ALL project files needed for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
+          COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
           RUN dotnet restore
           
@@ -97,13 +97,14 @@ jobs:
           
           # Build and publish
           RUN dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj -c Release
+          RUN dotnet publish MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj -c Release -o /app/publish
           
           # Runtime image
           FROM mcr.microsoft.com/dotnet/aspnet:9.0
           WORKDIR /app
-          COPY --from=build /app/MeTube-DevOps.UserService/bin/Release/net9.0/publish .
+          COPY --from=build /app/publish .
           
-          # Install EF Core tools for migrations
+          # Install required tools
           RUN apt-get update && \
               apt-get install -y curl && \
               apt-get clean
