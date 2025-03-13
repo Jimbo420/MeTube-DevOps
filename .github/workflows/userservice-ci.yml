@@ -1,88 +1,78 @@
-# 
-# GitHub Actions workflow to test the MeTube-DevOps.UserService microservice
-#
-
 name: Integrate MeTube-DevOps.UserService
 
-# Controls when the workflow will run
 on:
-
-  # This configuration triggers the workflow:
-  # - On a "push" ...
-  # - ... to the "main" branch ...
-  # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
-  #   ("/**" means "all subfolders recursively"). 
-  # As a result, the workflow will only run when changes are made to the UserService microservice.
   push:
     branches:
       - main
     paths:
       - MeTube-DevOps.UserService/**
-
-  # This configuration triggers the workflow:
-  # - On a "pull_request" ...
-  # - ... to the "main" branch ...
-  # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
   pull_request:
     branches:
       - main
     paths:
       - MeTube-DevOps.UserService/**
-  
-  # The configuration allows the workflow to be triggers manually through the GitHub Actions user interface.
-  # When choosing the workflow in the left margin under the Actions tab in GitHub's Web UI,
-  # there will be a "Run" drop-down listbox in the Web UI's far right, which can be used to manually trigger the workflow.
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-# Jobs are defined as entries under "jobs"
 jobs:
-
-  # This workflow contains a single job called "integrate" (the name will be shown in the workflow's output when it's run).
-  # We can call this anything we like.
   integrate:
-    
-    # Runs on the latest version of Ubuntu
-    # GitHub will create a virtual machine or container, where we can choose what image to use under "runs-on"
-    # In this case, the virtual machine/container is based on the latest version of Ubuntu (a Linux distro)
     runs-on: ubuntu-latest
-
-    # Under "env", we can define environment variables that will be available in the virtual machine/container created above.
-    env:
-      ASPNETCORE_URLS: "http://localhost:5218"
     
-    # "Steps" represents a sequence of tasks that will be executed as part of the job
-    steps:
-      
-      # The "uses" instruction is used to execute a pre-defined action
-      # In this case, the "actions/checkout@v4" is used
-      # This action basically does a "git clone" in the virtual machine/container created above to copy this repository to it
-      - uses: actions/checkout@v4
+    services:
+      # Add SQL Server service container
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: YourSecretPass123
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q 'SELECT 1'" 
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-      # This pre-defined action installs Dotnet in the virtual machine/container created above
-      # A "uses" action can be configured using a "with" section.
-      # In this case, the version of dotnet to install is configured to version 9.0.101.
-      # This means we can now run "dotnet" commands in the virtual machine/container created above
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://localhost:5218"
+      DB_CONNECTION_STRING: "Server=localhost,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
+    
+    steps:
+      - uses: actions/checkout@v4
+      
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.101
 
-      # Run the UserService
+      # Install EF Core CLI
+      - name: Install EF Core CLI
+        run: |
+          dotnet tool install --global dotnet-ef
+          
+      # Apply database migrations
+      - name: Apply Migrations
+        run: |
+          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
+          dotnet ef database update
+
+      # Build the solution
+      - name: Build Solution
+        run: dotnet build MeTube-DevOps.UserService
+
+      # Run the UserService in background
       - name: Run UserService
         run: |
-          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
-
-      # Wait for the UserService to start
+          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
+          dotnet run &
+          
+      # Check if service is up by polling health endpoint
       - name: Wait for UserService
         run: |
-          sleep 120    
+          for i in {1..30}; do
+            curl -s -o /dev/null -w "%{http_code}" http://localhost:5218/health | grep 200 && break
+            sleep 2
+          done
 
-      # This step is given the name "Test"
-      # Then the "run" instruction is used to run a command inside the virtual machine/container created above
-      # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
-      # - The "dotnet test" command will find the Solution file "MeTube-DevOps.UserService/MeTube-DevOps.UserService.sln"
-      # - The Solution file contains a project reference to "MeTube-DevOps.UserService/MeTube-DevOps.UserServiceTests/MeTube-DevOps.UserServiceTests.csproj"
-      # - The project file contains information about the project being of type "xUnit"
-      # - The "dotnet test" command finds all tests in MeTube-DevOps.UserServiceTests and executes them
+      # Run tests
       - name: Test
         run: dotnet test MeTube-DevOps.UserService
