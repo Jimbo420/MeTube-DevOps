@@ -193,18 +193,17 @@ jobs:
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
           
-          # Copy everything needed for migrations
+          # Copy only the main project files needed for migrations
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService/appsettings*.json ./MeTube-DevOps.UserService/
-          COPY MeTube-DevOps.UserService.sln .
           
-          # Restore packages and install EF tools
-          RUN dotnet restore
+          # Restore only the main project (not the solution)
+          RUN dotnet restore MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj
           RUN dotnet tool install --global dotnet-ef
           ENV PATH="${PATH}:/root/.dotnet/tools"
           
-          # Copy the rest of the source code
-          COPY . .
+          # Copy the rest of the main project source code
+          COPY MeTube-DevOps.UserService/ ./MeTube-DevOps.UserService/
           
           # Set the entry point to run migrations
           ENTRYPOINT ["dotnet", "ef", "database", "update", "--project", "MeTube-DevOps.UserService"]
