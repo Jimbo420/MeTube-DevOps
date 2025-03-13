@@ -23,6 +23,7 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: all users
+    // Adding a comment
     [HttpGet("manageUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
