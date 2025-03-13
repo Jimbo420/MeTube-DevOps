@@ -67,6 +67,12 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      - name: Check Docker files exist
+        working-directory: MeTube-DevOps.UserService
+        run: |
+          ls -la
+          if [ -f "docker-compose.yml" ]; then echo "docker-compose.yml exists"; else echo "docker-compose.yml is missing"; fi
+
       - name: Start required services
         working-directory: MeTube-DevOps.UserService
         run: docker-compose up -d
