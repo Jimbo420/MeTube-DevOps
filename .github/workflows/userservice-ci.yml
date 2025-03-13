@@ -11,7 +11,8 @@ on:
   # - On a "push" ...
   # - ... to the "main" branch ...
   # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
-  #   ("/**" means "all subfolders recursively").
+  #   ("/**" means "all subfolders recursively"). 
+  # As a result, the workflow will only run when changes are made to the UserService microservice.
   push:
     branches:
       - main
