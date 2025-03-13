@@ -51,6 +51,12 @@ jobs:
         with:
           dotnet-version: 9.0.101
 
+      - name: Check appsettings.json
+        run: |
+          echo "Checking API configuration..."
+          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.json
+          cat MeTube-DevOps.UserService/MeTube-DevOps.UserService/appsettings.Development.json
+
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
           
@@ -69,87 +75,7 @@ jobs:
           dotnet tool install --global Microsoft.Playwright.CLI
           playwright install
       
-      - name: Check project structure
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Directory contents:"
-          ls -la
-          echo "MeTube-DevOps.UserService directory contents:"
-          ls -la MeTube-DevOps.UserService
-          echo "MeTube-DevOps.UserService/MeTube-DevOps.UserService directory contents:"
-          ls -la MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          echo "Project info:"
-          dotnet list MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj reference
-      
-      - name: Run UserService
-        run: |
-          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          # Use full path for log file
-          LOG_FILE="$GITHUB_WORKSPACE/userservice.log"
-          echo "Log file will be: $LOG_FILE"
-          nohup dotnet run --urls "http://localhost:5218" > "$LOG_FILE" 2>&1 &
-          echo $! > "$GITHUB_WORKSPACE/userservice.pid"
-          # Check if process started
-          ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid")
-          
-      - name: Wait for UserService
-        run: |
-          LOG_FILE="$GITHUB_WORKSPACE/userservice.log"
-          echo "Waiting for UserService to start..."
-          echo "Process status:"
-          ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid") || echo "Process not running!"
-          
-          # Check if port is listening
-          echo "Port status:"
-          netstat -tulpn | grep 5218 || echo "Port 5218 not listening"
-          
-          for i in {1..30}; do
-            echo "Attempt $i: Checking service..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5218/health 2>/dev/null)
-            echo "  HTTP Status: $response"
-            
-            if [ "$response" = "200" ]; then
-              echo "UserService is ready!"
-              break
-            fi
-            
-            if [ $i -eq 10 ] || [ $i -eq 20 ]; then
-              echo "Checking log file after $i attempts:"
-              if [ -f "$LOG_FILE" ]; then
-                echo "Log file exists, showing last 20 lines:"
-                tail -20 "$LOG_FILE"
-              else
-                echo "Log file does not exist!"
-              fi
-              
-              # Check process again
-              echo "Process status update:"
-              ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid") || echo "Process not running!"
-            fi
-            
-            sleep 3
-            if [ $i -eq 30 ]; then
-              echo "UserService failed to start after 30 attempts."
-              if [ -f "$LOG_FILE" ]; then
-                echo "Full log contents:"
-                cat "$LOG_FILE"
-              else
-                echo "Log file does not exist!"
-              fi
-              exit 1
-            fi
-          done
-      
-      - name: Test
+      - name: Run directly with tests
         run: |
           cd MeTube-DevOps.UserService
-          dotnet test --no-build
-        
-      - name: Cleanup
-        if: always()
-        run: |
-          if [ -f "$GITHUB_WORKSPACE/userservice.pid" ]; then
-            kill $(cat "$GITHUB_WORKSPACE/userservice.pid") 2>/dev/null || echo "Process already stopped"
-          fi
-          docker stop sql-server || true
-          docker rm sql-server || true
+          dotnet test
