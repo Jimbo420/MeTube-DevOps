@@ -18,7 +18,7 @@ jobs:
     env:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://localhost:5218"
-      DB_CONNECTION_STRING: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
+      ConnectionStrings__DefaultConnection: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
     
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,6 @@ jobs:
         run: |
           echo "Waiting for SQL Server to start..."
           for i in {1..30}; do
-            # Use the -C option to trust the server certificate
             if docker exec sql-server /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION" -C; then
               echo "SQL Server is ready!"
               break
@@ -56,8 +55,6 @@ jobs:
         run: dotnet tool install --global dotnet-ef
           
       - name: Apply Migrations
-        env:
-          ConnectionStrings__DefaultConnection: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
         run: |
           cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
           dotnet ef database update --verbose
@@ -66,39 +63,84 @@ jobs:
         run: |
           dotnet build MeTube-DevOps.UserService
 
-      # Install Playwright browsers as they're needed for the integration tests
       - name: Install Playwright browsers
         run: |
           cd MeTube-DevOps.UserService
           dotnet tool install --global Microsoft.Playwright.CLI
           playwright install
       
+      - name: Check project structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          echo "MeTube-DevOps.UserService directory contents:"
+          ls -la MeTube-DevOps.UserService
+          echo "MeTube-DevOps.UserService/MeTube-DevOps.UserService directory contents:"
+          ls -la MeTube-DevOps.UserService/MeTube-DevOps.UserService
+          echo "Project info:"
+          dotnet list MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj reference
+      
       - name: Run UserService
         run: |
           cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          nohup dotnet run --urls "http://localhost:5218" > userservice.log 2>&1 &
-          echo $! > userservice.pid
+          # Use full path for log file
+          LOG_FILE="$GITHUB_WORKSPACE/userservice.log"
+          echo "Log file will be: $LOG_FILE"
+          nohup dotnet run --urls "http://localhost:5218" > "$LOG_FILE" 2>&1 &
+          echo $! > "$GITHUB_WORKSPACE/userservice.pid"
+          # Check if process started
+          ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid")
           
       - name: Wait for UserService
         run: |
+          LOG_FILE="$GITHUB_WORKSPACE/userservice.log"
           echo "Waiting for UserService to start..."
+          echo "Process status:"
+          ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid") || echo "Process not running!"
+          
+          # Check if port is listening
+          echo "Port status:"
+          netstat -tulpn | grep 5218 || echo "Port 5218 not listening"
+          
           for i in {1..30}; do
-            if curl -sSf http://localhost:5218/health > /dev/null 2>&1; then
+            echo "Attempt $i: Checking service..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5218/health 2>/dev/null)
+            echo "  HTTP Status: $response"
+            
+            if [ "$response" = "200" ]; then
               echo "UserService is ready!"
               break
             fi
-            echo "Attempt $i: Waiting for UserService..."
+            
+            if [ $i -eq 10 ] || [ $i -eq 20 ]; then
+              echo "Checking log file after $i attempts:"
+              if [ -f "$LOG_FILE" ]; then
+                echo "Log file exists, showing last 20 lines:"
+                tail -20 "$LOG_FILE"
+              else
+                echo "Log file does not exist!"
+              fi
+              
+              # Check process again
+              echo "Process status update:"
+              ps -p $(cat "$GITHUB_WORKSPACE/userservice.pid") || echo "Process not running!"
+            fi
+            
             sleep 3
             if [ $i -eq 30 ]; then
-              echo "UserService failed to start. Checking logs..."
-              cat userservice.log
+              echo "UserService failed to start after 30 attempts."
+              if [ -f "$LOG_FILE" ]; then
+                echo "Full log contents:"
+                cat "$LOG_FILE"
+              else
+                echo "Log file does not exist!"
+              fi
               exit 1
             fi
           done
       
       - name: Test
-        env:
-          ConnectionStrings__DefaultConnection: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
         run: |
           cd MeTube-DevOps.UserService
           dotnet test --no-build
@@ -106,8 +148,8 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          if [ -f userservice.pid ]; then
-            kill $(cat userservice.pid) || true
+          if [ -f "$GITHUB_WORKSPACE/userservice.pid" ]; then
+            kill $(cat "$GITHUB_WORKSPACE/userservice.pid") 2>/dev/null || echo "Process already stopped"
           fi
           docker stop sql-server || true
           docker rm sql-server || true
