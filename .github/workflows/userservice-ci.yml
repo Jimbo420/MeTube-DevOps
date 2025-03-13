@@ -67,6 +67,13 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      - name: Start required services
+        working-directory: MeTube-DevOps.UserService
+        run: docker-compose up -d
+
+      - name: Wait for services to be ready
+        run: sleep 10s
+
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
       # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
