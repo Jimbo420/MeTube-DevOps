@@ -1,13 +1,12 @@
+@namespace MeTube.Client.Pages
 @page "/video/{VideoId:int}"
 @using MeTube.Client.Models
 @using MeTube.Client.ViewModels.VideoViewModels
-@* @using MeTube.Client.Services
-@using MeTube.DTO *@
+@using MeTube.Client.Services
 @inject VideoViewModel ViewModel
 @inject IJSRuntime JSRuntime
-@* @inject ICommentService CommentService
-@inject IUserService UserService *@
-
+@inject ICommentServicee CommentService
+@inject IUserService UserService
 
 <link href="css/video_view.css" rel="stylesheet" />
 

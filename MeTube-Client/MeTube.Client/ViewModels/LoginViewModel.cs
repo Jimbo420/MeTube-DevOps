@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 // using MeTube.Client.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MeTube.Client.Services;
 using System.ComponentModel.DataAnnotations;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -56,25 +57,25 @@ namespace MeTube.Client.ViewModels.LoginViewModels
             }
 
             // Attempt to log in the user
-            var userFound = await _userService.LoginAsync(Username, Password);
+            // var userFound = await _userService.LoginAsync(Username, Password);
 
-            if (userFound != null)
-            {
-                // Get and store the JWT token if login is successful
-                string token = await _userService.GetTokenAsync(Username, Password);
-                if (!string.IsNullOrEmpty(token))
-                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "jwtToken", token);
-                await _jsRuntime.InvokeVoidAsync("alert", "Login succesfull!");
-                ClearAllFields();
-                IsUserLoggedIn = true;
-            }
-            else
-            {
-                // Display an error message if login fails
-                await _jsRuntime.InvokeVoidAsync("alert", "Wrong username or password!");
-                ClearAllFields();
-                return;
-            }
+            // if (userFound != null)
+            // {
+            //     // Get and store the JWT token if login is successful
+            //     string token = await _userService.GetTokenAsync(Username, Password);
+            //     if (!string.IsNullOrEmpty(token))
+            //         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "jwtToken", token);
+            //     await _jsRuntime.InvokeVoidAsync("alert", "Login succesfull!");
+            //     ClearAllFields();
+            //     IsUserLoggedIn = true;
+            // }
+            // else
+            // {
+            //     // Display an error message if login fails
+            //     await _jsRuntime.InvokeVoidAsync("alert", "Wrong username or password!");
+            //     ClearAllFields();
+            //     return;
+            // }
             // Navigate to the home page
             _navigation.NavigateTo("", forceLoad: true);
         }

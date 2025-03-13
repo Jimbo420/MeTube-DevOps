@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MeTube.Client.Models;
 using MeTube.Client.Services;
-using MeTube.DTO.CommentDTOs;
+// using MeTube.DTO.CommentDTOs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Collections.ObjectModel;
@@ -16,7 +16,7 @@ namespace MeTube.Client.ViewModels.VideoViewModels
     public partial class VideoViewModel
     {
         private readonly IVideoService _videoService;
-        private readonly ICommentService _commentService;
+        private readonly ICommentServicee _commentService;
         private readonly IUserService _userService;
         private readonly ILikeService _likeService;
         private readonly IHistoryService _historyService;
@@ -40,7 +40,7 @@ namespace MeTube.Client.ViewModels.VideoViewModels
 
         public VideoViewModel(IVideoService videoService, 
                               ILikeService likeService,
-                              ICommentService commentService,
+                              ICommentServicee commentService,
                               IUserService userService,
                               IMapper mapper,
                               NavigationManager navigationManager,
@@ -60,9 +60,9 @@ namespace MeTube.Client.ViewModels.VideoViewModels
 
         public async Task InitializeAsync()
         {
-            var authData = await _userService.IsUserAuthenticated();
-            IsAuthenticated = authData["IsAuthenticated"] == "true";
-            UserRole = authData["Role"];
+            // var authData = await _userService.IsUserAuthenticated();
+            // IsAuthenticated = authData["IsAuthenticated"] == "true";
+            // UserRole = authData["Role"];
         }
 
         [ObservableProperty]
@@ -96,26 +96,26 @@ namespace MeTube.Client.ViewModels.VideoViewModels
             {
                 try
                 {
-                    var newCommentDto = new CommentDto
-                    {
-                        VideoId = CurrentVideo.Id,
-                        UserId = 0, // this is checked in the API properly
-                        Content = NewCommentText,
-                        DateAdded = DateTime.Now
-                    };
+                    // var newCommentDto = new CommentDto
+                    // {
+                    //     VideoId = CurrentVideo.Id,
+                    //     UserId = 0, // this is checked in the API properly
+                    //     Content = NewCommentText,
+                    //     DateAdded = DateTime.Now
+                    // };
 
-                    var postedComment = await _commentService.AddCommentAsync(newCommentDto);
+                    // var postedComment = await _commentService.AddCommentAsync(newCommentDto);
 
-                    if (postedComment != null)
-                    {
-                        await LoadCommentsAsync(CurrentVideo.Id);
-                        NewCommentText = string.Empty;
-                        CommentErrorMessage = string.Empty;
-                    }
-                    else
-                    {
-                        CommentErrorMessage = "Failed to post your comment. Please try again.";
-                    }
+                    // if (postedComment != null)
+                    // {
+                    //     await LoadCommentsAsync(CurrentVideo.Id);
+                    //     NewCommentText = string.Empty;
+                    //     CommentErrorMessage = string.Empty;
+                    // }
+                    // else
+                    // {
+                    //     CommentErrorMessage = "Failed to post your comment. Please try again.";
+                    // }
                 }
                 catch (Exception ex)
                 {
@@ -174,20 +174,20 @@ namespace MeTube.Client.ViewModels.VideoViewModels
 
             try
             {
-                CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
-                if (CurrentVideo != null)
-                {
-                    UploaderUsername = await _videoService.GetUploaderUsernameAsync(videoId);
-                    HasUserLiked = await _likeService.HasUserLikedVideoAsync(videoId);
-                    LikeCount = await _likeService.GetLikeCountForVideoAsync(videoId);
-                    await LoadCommentsAsync(videoId);
-                }
-                else
-                {
-                    ErrorMessage = "Video could not be found";
-                    _navigationManager.NavigateTo("/");
-                    return;
-                }
+                // CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
+                // if (CurrentVideo != null)
+                // {
+                //     UploaderUsername = await _videoService.GetUploaderUsernameAsync(videoId);
+                //     HasUserLiked = await _likeService.HasUserLikedVideoAsync(videoId);
+                //     LikeCount = await _likeService.GetLikeCountForVideoAsync(videoId);
+                //     await LoadCommentsAsync(videoId);
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Video could not be found";
+                //     _navigationManager.NavigateTo("/");
+                //     return;
+                // }
                 
             }
             catch (Exception ex)
@@ -204,15 +204,15 @@ namespace MeTube.Client.ViewModels.VideoViewModels
         {
             try
             {
-                var commentDtos = await _commentService.GetCommentsByVideoIdAsync(videoId);
-                Comments.Clear();
+                // var commentDtos = await _commentService.GetCommentsByVideoIdAsync(videoId);
+                // Comments.Clear();
 
-                foreach (var commentDto in commentDtos)
-                {
-                    var comment = _mapper.Map<Comment>(commentDto);
-                    comment.PosterUsername = await _commentService.GetPosterUsernameAsync(comment.UserId);
-                    Comments.Add(comment);
-                }
+                // foreach (var commentDto in commentDtos)
+                // {
+                //     var comment = _mapper.Map<Comment>(commentDto);
+                //     comment.PosterUsername = await _commentService.GetPosterUsernameAsync(comment.UserId);
+                //     Comments.Add(comment);
+                // }
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
@@ -225,29 +225,29 @@ namespace MeTube.Client.ViewModels.VideoViewModels
         {
             try
             {
-                var updatedCommentDto = new CommentDto
-                {
-                    Id = comment.Id,
-                    VideoId = comment.VideoId,
-                    UserId = comment.UserId,
-                    Content = comment.Content,
-                    DateAdded = comment.DateAdded
-                };
+                // var updatedCommentDto = new CommentDto
+                // {
+                //     Id = comment.Id,
+                //     VideoId = comment.VideoId,
+                //     UserId = comment.UserId,
+                //     Content = comment.Content,
+                //     DateAdded = comment.DateAdded
+                // };
 
-                var updatedComment = await _commentService.UpdateCommentAsync(updatedCommentDto);
+                // var updatedComment = await _commentService.UpdateCommentAsync(updatedCommentDto);
 
-                if (updatedComment != null)
-                {
-                    var index = Comments.IndexOf(comment);
-                    if (index >= 0)
-                    {
-                        Comments[index] = updatedComment;
-                    }
-                }
-                else
-                {
-                    CommentErrorMessage = "Failed to edit comment. Please try again.";
-                }
+                // if (updatedComment != null)
+                // {
+                //     var index = Comments.IndexOf(comment);
+                //     if (index >= 0)
+                //     {
+                //         Comments[index] = updatedComment;
+                //     }
+                // }
+                // else
+                // {
+                //     CommentErrorMessage = "Failed to edit comment. Please try again.";
+                // }
             }
             catch (Exception ex)
             {
@@ -261,15 +261,15 @@ namespace MeTube.Client.ViewModels.VideoViewModels
         {
             try
             {
-                var result = await _commentService.DeleteCommentAsync(comment.Id);
-                if (result)
-                {
-                    Comments.Remove(comment);
-                }
-                else
-                {
-                    CommentErrorMessage = "Failed to delete the comment. Please try again.";
-                }
+                // var result = await _commentService.DeleteCommentAsync(comment.Id);
+                // if (result)
+                // {
+                //     Comments.Remove(comment);
+                // }
+                // else
+                // {
+                //     CommentErrorMessage = "Failed to delete the comment. Please try again.";
+                // }
             }
             catch (Exception ex)
             {
@@ -283,20 +283,20 @@ namespace MeTube.Client.ViewModels.VideoViewModels
         {
             try
             {
-                bool success = HasUserLiked
-                    ? await _likeService.RemoveLikeAsync(CurrentVideo.Id)
-                    : await _likeService.AddLikeAsync(CurrentVideo.Id);
+                // bool success = HasUserLiked
+                //     ? await _likeService.RemoveLikeAsync(CurrentVideo.Id)
+                //     : await _likeService.AddLikeAsync(CurrentVideo.Id);
 
-                if (success)
-                {
-                    HasUserLiked = !HasUserLiked;
-                    LikeCount += HasUserLiked ? 1 : -1;
-                }
-                else
-                {
-                    ShowLoginPrompt = true;
-                    OnPropertyChanged(nameof(ShowLoginPrompt));
-                }
+                // if (success)
+                // {
+                //     HasUserLiked = !HasUserLiked;
+                //     LikeCount += HasUserLiked ? 1 : -1;
+                // }
+                // else
+                // {
+                //     ShowLoginPrompt = true;
+                //     OnPropertyChanged(nameof(ShowLoginPrompt));
+                // }
             }
             catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
             {
@@ -322,7 +322,7 @@ namespace MeTube.Client.ViewModels.VideoViewModels
 
                 };
 
-                await _historyService.AddHistoryAsync(history);
+                // await _historyService.AddHistoryAsync(history);
             }
             catch { } // quietly ignore errors
         }

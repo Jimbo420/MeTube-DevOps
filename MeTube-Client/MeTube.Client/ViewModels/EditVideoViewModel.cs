@@ -66,7 +66,7 @@ namespace MeTube.Client.ViewModels
         {
             try
             {
-                Likes = await _likeService.GetLikesForVideoManagementAsync(videoId);
+                // Likes = await _likeService.GetLikesForVideoManagementAsync(videoId);
             }
             catch (Exception ex)
             {
@@ -84,7 +84,7 @@ namespace MeTube.Client.ViewModels
                 IsLoading = true;
                 ErrorMessage = string.Empty;
 
-                CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
+                // CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
                 await LoadLikesAsync(videoId);
                 if (CurrentVideo != null)
                 {
@@ -119,14 +119,14 @@ namespace MeTube.Client.ViewModels
                 var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this like?");
                 if (!confirmed) return;
 
-                var likeDto = new LikeDto
-                {
-                    VideoID = CurrentVideo.Id,
-                    UserID = userId
-                };
+                // var likeDto = new LikeDto
+                // {
+                //     VideoID = CurrentVideo.Id,
+                //     UserID = userId
+                // };
 
-                await _likeService.RemoveLikesForVideoAsync(CurrentVideo.Id, userId);
-                await LoadLikesAsync(CurrentVideo.Id);
+                // await _likeService.RemoveLikesForVideoAsync(CurrentVideo.Id, userId);
+                // await LoadLikesAsync(CurrentVideo.Id);
             }
             catch (Exception)
             {
@@ -154,16 +154,16 @@ namespace MeTube.Client.ViewModels
                 CurrentVideo.Description = Description;
                 CurrentVideo.Genre = Genre;
 
-                var updatedVideo = await _videoService.UpdateVideoAsync(CurrentVideo);
-                if (updatedVideo != null)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "Video details updated successfully!");
-                    _navigationManager.NavigateTo("/videos/manage");
-                }
-                else
-                {
-                    ErrorMessage = "Failed to update video details.";
-                }
+                // var updatedVideo = await _videoService.UpdateVideoAsync(CurrentVideo);
+                // if (updatedVideo != null)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Video details updated successfully!");
+                //     _navigationManager.NavigateTo("/videos/manage");
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Failed to update video details.";
+                // }
             }
             catch (Exception)
             {
@@ -188,17 +188,17 @@ namespace MeTube.Client.ViewModels
                 using var videoStream = NewVideoFile.OpenReadStream(500 * 1024 * 1024); // Max 500MB
                 DateTime dateUploaded = DateTime.Now;
                 string uniqeVideWithDate = dateUploaded.ToString();
-                var updatedVideo = await _videoService.UpdateVideoFileAsync(CurrentVideo.Id, videoStream, NewVideoFile.Name+ uniqeVideWithDate);
+                // var updatedVideo = await _videoService.UpdateVideoFileAsync(CurrentVideo.Id, videoStream, NewVideoFile.Name+ uniqeVideWithDate);
 
-                if (updatedVideo != null)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "Video file updated successfully!");
-                    _navigationManager.NavigateTo("/videos/manage");
-                }
-                else
-                {
-                    ErrorMessage = "Failed to update video file.";
-                }
+                // if (updatedVideo != null)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Video file updated successfully!");
+                //     _navigationManager.NavigateTo("/videos/manage");
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Failed to update video file.";
+                // }
             }
             catch (Exception)
             {
@@ -221,17 +221,17 @@ namespace MeTube.Client.ViewModels
             {
                 IsLoading = true;
                 using var thumbnailStream = NewThumbnailFile.OpenReadStream(5 * 1024 * 1024); // Max 5MB  
-                var updatedVideo = await _videoService.UpdateVideoThumbnailAsync(CurrentVideo.Id, thumbnailStream, NewThumbnailFile.Name);
+                // var updatedVideo = await _videoService.UpdateVideoThumbnailAsync(CurrentVideo.Id, thumbnailStream, NewThumbnailFile.Name);
 
-                if (updatedVideo != null)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "Thumbnail updated successfully!");
-                    CurrentVideo = updatedVideo;
-                }
-                else
-                {
-                    ErrorMessage = "Failed to update thumbnail.";
-                }
+                // if (updatedVideo != null)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Thumbnail updated successfully!");
+                //     CurrentVideo = updatedVideo;
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Failed to update thumbnail.";
+                // }
             }
             catch (Exception)
             {
@@ -256,17 +256,17 @@ namespace MeTube.Client.ViewModels
                 var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to reset to the default thumbnail?");
                 if (!confirmed) return;
 
-                bool resetOk = await _videoService.ResetThumbnail(CurrentVideo.Id);
-                if (resetOk)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail successful!");
-                    NewThumbnailFile = null;
-                    await LoadVideoAsync(CurrentVideo.Id);
-                }
-                else
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail not successful!");
-                }
+                // bool resetOk = await _videoService.ResetThumbnail(CurrentVideo.Id);
+                // if (resetOk)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail successful!");
+                //     NewThumbnailFile = null;
+                //     await LoadVideoAsync(CurrentVideo.Id);
+                // }
+                // else
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail not successful!");
+                // }
             }
             catch (Exception)
             {

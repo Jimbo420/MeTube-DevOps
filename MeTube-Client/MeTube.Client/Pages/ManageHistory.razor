@@ -1,3 +1,4 @@
+@namespace MeTube.Client.Pages
 @page "/managehistory"
 @using MeTube.Client.ViewModels.HistoryViewModels
 @using MeTube.Client.Models
@@ -6,7 +7,7 @@
 
 <h3>Manage History (Admin)</h3>
 
-@* @if (ViewModel.IsLoading)
+@if (ViewModel.IsLoading)
 {
     <p><strong>Loading ...</strong></p>
 }
@@ -196,7 +197,7 @@ else
                 Clear
             </button>
         </div>
-    } *@
+    }
 }
 
 @code {
