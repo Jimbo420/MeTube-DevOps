@@ -111,23 +111,23 @@ namespace MeTube.Client.ViewModels
                 DateTime dateUploaded = DateTime.Now;
                 string uniqeVideWithDate = dateUploaded.ToString();
 
-                var uploadedVideo = await _videoService.UploadVideoAsync(
-                    video,
-                    videoMS,
-                    VideoFile.Name+ uniqeVideWithDate,
-                    thumbnailMS,
-                    ThumbnailFile?.Name);
+                // var uploadedVideo = await _videoService.UploadVideoAsync(
+                //     video,
+                //     videoMS,
+                //     VideoFile.Name+ uniqeVideWithDate,
+                //     thumbnailMS,
+                //     ThumbnailFile?.Name);
 
-                if (uploadedVideo != null)
-                {
-                    SuccessMessage = "Video uploaded successfully!";
-                    await Task.Delay(2000);
-                    _navigationManager.NavigateTo("/videos/manage");
-                }
-                else
-                {
-                    ErrorMessage = "Failed to upload video. Please try again.";
-                }
+                // if (uploadedVideo != null)
+                // {
+                //     SuccessMessage = "Video uploaded successfully!";
+                //     await Task.Delay(2000);
+                //     _navigationManager.NavigateTo("/videos/manage");
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Failed to upload video. Please try again.";
+                // }
             }
             catch (Exception ex)
             {

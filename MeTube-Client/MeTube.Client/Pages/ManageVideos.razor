@@ -1,8 +1,9 @@
 @namespace MeTube.Client.Pages
 @page "/videos/manage"
+@using MeTube.Client.ViewModels.VideoViewModels
 @inject ManageVideosViewModel ViewModel
 @using MeTube.Client.Services
-@using Microsoft.AspNetCore.Components.Authorization
+@* @using Microsoft.AspNetCore.Components.Authorization *@
 @inject IUserService UserService
 
 <link href="css/manage_videos.css" rel="stylesheet" />
@@ -65,6 +66,8 @@
                         <th>Title</th>
                         <th>Upload Date</th>
                         <th>Description</th>
+    using MeTube.Client.ViewModels.VideoViewModels;
+    using MeTube.Client.ViewModels.VideoViewModels;
                         <th>Actions</th>
                     </tr>
                 </thead>

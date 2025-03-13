@@ -33,14 +33,14 @@ namespace MeTube.Client.ViewModels.VideoViewModels
 
             try
             {
-                var videos = await _videoService.GetAllVideosAsync();
-                Videos = new ObservableCollection<Video>(videos);
+                // var videos = await _videoService.GetAllVideosAsync();
+                // Videos = new ObservableCollection<Video>(videos);
 
-                // Set the username of the uploader for each video
-                foreach (var video in Videos)
-                {
-                    video.UploaderUsername = await _videoService.GetUploaderUsernameAsync(video.Id);
-                }
+                // // Set the username of the uploader for each video
+                // foreach (var video in Videos)
+                // {
+                //     video.UploaderUsername = await _videoService.GetUploaderUsernameAsync(video.Id);
+                // }
             }
             finally
             {
@@ -55,26 +55,26 @@ namespace MeTube.Client.ViewModels.VideoViewModels
             try
             {
  
-                var videos = await _videoService.GetRecommendedVideosAsync();
+                // var videos = await _videoService.GetRecommendedVideosAsync();
 
 
-                if (videos == null)
-                {
-                    videos = new List<Video>();
-                    videos.Clear();
-                }
-                else
-                {
+                // if (videos == null)
+                // {
+                //     videos = new List<Video>();
+                //     videos.Clear();
+                // }
+                // else
+                // {
 
 
-                    RecommendedVideos = new ObservableCollection<Video>(videos);
+                //     RecommendedVideos = new ObservableCollection<Video>(videos);
 
 
-                    foreach (var video in RecommendedVideos)
-                    {
-                        video.UploaderUsername = await _videoService.GetUploaderUsernameAsync(video.Id);
-                    }
-                }
+                //     foreach (var video in RecommendedVideos)
+                //     {
+                //         video.UploaderUsername = await _videoService.GetUploaderUsernameAsync(video.Id);
+                //     }
+                // }
             }
             finally
             {

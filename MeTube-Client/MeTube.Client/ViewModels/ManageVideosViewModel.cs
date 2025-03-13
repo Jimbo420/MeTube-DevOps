@@ -48,14 +48,14 @@ namespace MeTube.Client.ViewModels.VideoViewModels
                 ErrorMessage = string.Empty;
                 UserVideos.Clear();
 
-                var videos = await _videoService.GetVideosByUserIdAsync();
-                if (videos != null)
-                {
-                    foreach (var video in videos.OrderByDescending(v => v.DateUploaded))
-                    {
-                        UserVideos.Add(video);
-                    }
-                }
+                // var videos = await _videoService.GetVideosByUserIdAsync();
+                // if (videos != null)
+                // {
+                //     foreach (var video in videos.OrderByDescending(v => v.DateUploaded))
+                //     {
+                //         UserVideos.Add(video);
+                //     }
+                // }
             }
             catch (Exception)
             {
@@ -78,14 +78,14 @@ namespace MeTube.Client.ViewModels.VideoViewModels
                 ErrorMessage = string.Empty;
                 UserVideos.Clear();
 
-                var videos = await _videoService.GetAllVideosAsync();
-                if (videos != null)
-                {
-                    foreach (var video in videos.OrderByDescending(v => v.DateUploaded))
-                    {
-                        UserVideos.Add(video);
-                    }
-                }
+                // var videos = await _videoService.GetAllVideosAsync();
+                // if (videos != null)
+                // {
+                //     foreach (var video in videos.OrderByDescending(v => v.DateUploaded))
+                //     {
+                //         UserVideos.Add(video);
+                //     }
+                // }
             }
             catch (Exception)
             {
@@ -133,18 +133,18 @@ namespace MeTube.Client.ViewModels.VideoViewModels
             try
             {
                 IsLoading = true;
-                var success = await _videoService.DeleteVideoAsync(VideoToDelete.Id);
-                if (success)
-                {
-                    UserVideos.Remove(VideoToDelete);
-                    SuccessMessage = "Video successfully deleted!";
-                    await Task.Delay(2000); // Show the message for 2 seconds
-                    SuccessMessage = string.Empty;
-                }
-                else
-                {
-                    ErrorMessage = "Failed to delete video. Please try again.";
-                }
+                // var success = await _videoService.DeleteVideoAsync(VideoToDelete.Id);
+                // if (success)
+                // {
+                //     UserVideos.Remove(VideoToDelete);
+                //     SuccessMessage = "Video successfully deleted!";
+                //     await Task.Delay(2000); // Show the message for 2 seconds
+                //     SuccessMessage = string.Empty;
+                // }
+                // else
+                // {
+                //     ErrorMessage = "Failed to delete video. Please try again.";
+                // }
             }
             catch (Exception)
             {

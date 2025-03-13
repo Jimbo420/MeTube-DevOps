@@ -13,20 +13,20 @@ using MeTube.Client.ViewModels.SignupViewModels;
 using MeTube.Client.ViewModels.VideoViewModels;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-// builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5001/") });
-// builder.Services.AddSingleton<LoginView>();
-// builder.Services.AddSingleton<ManageUsersView>();
-// builder.Services.AddSingleton<VideoView>();
-// builder.Services.AddSingleton<Home>();
-// builder.Services.AddSingleton<ManageVideos>();
-// builder.Services.AddSingleton<EditVideo>();
-// builder.Services.AddSingleton<UploadVideo>();
-// builder.Services.AddSingleton<HistoryView>();
-// builder.Services.AddSingleton<ManageHistory>();
+builder.Services.AddSingleton<LoginView>();
+builder.Services.AddSingleton<ManageUsersView>();
+builder.Services.AddSingleton<VideoView>();
+builder.Services.AddSingleton<Home>();
+builder.Services.AddSingleton<ManageVideos>();
+builder.Services.AddSingleton<EditVideo>();
+builder.Services.AddSingleton<UploadVideo>();
+builder.Services.AddSingleton<HistoryView>();
+builder.Services.AddSingleton<ManageHistory>();
 
 
 builder.Services.AddTransient<SignupViewModel>();
@@ -42,21 +42,33 @@ builder.Services.AddTransient<UserHistoryViewModel>();
 builder.Services.AddTransient<AdminHistoryViewModel>();
 
 // builder.Services.AddSingleton<IJSRuntimeWrapper, JSRuntimeWrapper>();
-// builder.Services.AddSingleton<IClientService,ClientService>();
-// builder.Services.AddSingleton<IUserService, UserService>();
-// builder.Services.AddScoped<IVideoService, VideoService>();
-// builder.Services.AddScoped<ILikeService, LikeService>();
-// builder.Services.AddScoped<IHistoryService, HistoryService>();
-// builder.Services.AddScoped<ICommentService, CommentService>();
-// builder.Services.AddScoped<IAdminHistoryService, AdminHistoryService>();
+builder.Services.AddSingleton<IClientService>();
 
-// builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-// builder.Services.AddAuthorizationCore();
-// builder.Services.AddAutoMapper(typeof(User));
-// builder.Services.AddAutoMapper(typeof(Video));
-// builder.Services.AddAutoMapper(typeof(Like));
-// builder.Services.AddAutoMapper(typeof(History));
-// builder.Services.AddAutoMapper(typeof(Program).Assembly);
-// builder.Services.AddTransient<HttpClient>();
+builder.Services.AddSingleton<IUserService>();
+builder.Services.AddScoped<IVideoService>();
+builder.Services.AddScoped<ILikeService>();
+builder.Services.AddScoped<IHistoryService>();
+builder.Services.AddScoped<ICommentServicee>();
+builder.Services.AddScoped<IAdminHistoryService>();
+
+builder.Services.AddSingleton<ClientService>();
+builder.Services.AddSingleton<VideoService>();
+builder.Services.AddSingleton<LikeService>();
+builder.Services.AddSingleton<HistoryService>();
+builder.Services.AddSingleton<CommentService>();
+builder.Services.AddSingleton<AdminHistoryService>();
+
+
+
+
+builder.Services.AddScoped<IAuthenticationService>();
+builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddAuthorizationCore();
+builder.Services.AddAutoMapper(typeof(User));
+builder.Services.AddAutoMapper(typeof(Video));
+builder.Services.AddAutoMapper(typeof(Like));
+builder.Services.AddAutoMapper(typeof(History));
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddTransient<HttpClient>();
 
 await builder.Build().RunAsync();

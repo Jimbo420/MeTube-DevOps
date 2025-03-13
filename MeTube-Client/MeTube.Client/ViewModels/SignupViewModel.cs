@@ -65,16 +65,17 @@ namespace MeTube.Client.ViewModels.SignupViewModels
         // Checks if the user already exists
         private async Task<bool> CheckIfUserExist()
         {
-            Dictionary<string, string> response = await _userService.DoesUserExistAsync(Username, Email);
-            string userExists = response.Keys.FirstOrDefault();
-            string responseMessage = response[userExists];
-            if (Convert.ToBoolean(userExists))
-            {
-                await _jsRuntime.InvokeAsync<bool>("alert", responseMessage);
-                return true;
-            }
-            else
-                return false;
+            // Dictionary<string, string> response = await _userService.DoesUserExistAsync(Username, Email);
+            // string userExists = response.Keys.FirstOrDefault();
+            // string responseMessage = response[userExists];
+            // if (Convert.ToBoolean(userExists))
+            // {
+            //     await _jsRuntime.InvokeAsync<bool>("alert", responseMessage);
+            //     return true;
+            // }
+            // else
+            //     return false;
+            return false;
         }
 
         // Handles the signup button click event
@@ -104,19 +105,19 @@ namespace MeTube.Client.ViewModels.SignupViewModels
                 Password = Password,
             };
 
-            var success = await _userService.RegisterUserAsync(newUser);
-            if (!success)
-            {
-                await _jsRuntime.InvokeVoidAsync("alert", "Unable to signup!");
-                return;
-            }
-            else
-            {
-                await _jsRuntime.InvokeVoidAsync("alert", "Account successfully created!");
-                ClearAllFields();
-                if (_navigation != null)
-                    _navigation.NavigateTo("/login", forceLoad: true);
-            }
+            // var success = await _userService.RegisterUserAsync(newUser);
+            // if (!success)
+            // {
+            //     await _jsRuntime.InvokeVoidAsync("alert", "Unable to signup!");
+            //     return;
+            // }
+            // else
+            // {
+            //     await _jsRuntime.InvokeVoidAsync("alert", "Account successfully created!");
+            //     ClearAllFields();
+            //     if (_navigation != null)
+            //         _navigation.NavigateTo("/login", forceLoad: true);
+            // }
         }
     }
 }

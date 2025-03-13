@@ -32,22 +32,22 @@ namespace MeTube.Client.ViewModels.HistoryViewModels
         {
             try
             {
-                UserHistory.Clear();
-                var history = await _historyService.GetUserHistoryAsync();
+                // UserHistory.Clear();
+                // var history = await _historyService.GetUserHistoryAsync();
 
-                if (history != null)
-                {
+                // if (history != null)
+                // {
                     
-                    foreach (var item in history.OrderByDescending(h => h.DateWatched))
-                    {
-                        var video = await _videoService.GetVideoByIdAsync(item.VideoId);
-                        if (video != null)
-                        {
-                            item.Video = video; 
-                        }
-                    }
-                    UserHistory = history.ToList();
-                }
+                //     foreach (var item in history.OrderByDescending(h => h.DateWatched))
+                //     {
+                //         var video = await _videoService.GetVideoByIdAsync(item.VideoId);
+                //         if (video != null)
+                //         {
+                //             item.Video = video; 
+                //         }
+                //     }
+                //     UserHistory = history.ToList();
+                // }
             }
             catch (Exception ex)
             {
