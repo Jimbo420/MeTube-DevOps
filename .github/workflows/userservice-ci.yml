@@ -14,7 +14,7 @@ on:
   #   ("/**" means "all subfolders recursively").
   push:
     branches:
-      - main
+      - 13-azure-and-terraform-workshop-5
     paths:
       - MeTube-DevOps.UserService/**
 
@@ -24,7 +24,7 @@ on:
   # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
   pull_request:
     branches:
-      - main
+      - 13-azure-and-terraform-workshop-5
     paths:
       - MeTube-DevOps.UserService/**
   
