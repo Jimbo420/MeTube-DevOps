@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using MeTube.Client.Models;
-// using MeTube.Client.Services;
+using MeTube.Client.Services;
 // using MeTube.DTO;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,8 +11,8 @@ namespace MeTube.Client.ViewModels
 {
     public partial class EditVideoViewModel : ObservableValidator
     {
-        // private readonly IVideoService _videoService;
-        // private readonly ILikeService _likeService;
+        private readonly IVideoService _videoService;
+        private readonly ILikeService _likeService;
         private readonly NavigationManager _navigationManager;
         private readonly IJSRuntime _jsRuntime;
 
@@ -46,236 +46,236 @@ namespace MeTube.Client.ViewModels
         [ObservableProperty]
         private IEnumerable<Like>? likes;
 
-        public EditVideoViewModel()
-            // IVideoService videoService,
-            // NavigationManager navigationManager,
-            // IJSRuntime jsRuntime,
-            // ILikeService likeService
+        public EditVideoViewModel(
+            IVideoService videoService,
+            NavigationManager navigationManager,
+            IJSRuntime jsRuntime,
+            ILikeService likeService)
             
         {
-            // _videoService = videoService;
-            // _navigationManager = navigationManager;
-            // _jsRuntime = jsRuntime;
-            // _likeService = likeService;
+            _videoService = videoService;
+            _navigationManager = navigationManager;
+            _jsRuntime = jsRuntime;
+            _likeService = likeService;
         }
 
-    //     // Load likes for a specific video by its ID  
-    //     // Fetch likes from the like service  
-    //     // Handle any exceptions that occur  
-    //     public async Task LoadLikesAsync(int videoId)
-    //     {
-    //         try
-    //         {
-    //             Likes = await _likeService.GetLikesForVideoManagementAsync(videoId);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             ErrorMessage = "Failed to load likes: " + ex.Message;
-    //         }
-    //     }
+        // Load likes for a specific video by its ID  
+        // Fetch likes from the like service  
+        // Handle any exceptions that occur  
+        public async Task LoadLikesAsync(int videoId)
+        {
+            try
+            {
+                Likes = await _likeService.GetLikesForVideoManagementAsync(videoId);
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "Failed to load likes: " + ex.Message;
+            }
+        }
 
-    //     // Load video details and its likes by video ID  
-    //     // Fetch video details from the video service  
-    //     // Handle any exceptions that occur  
-    //     public async Task LoadVideoAsync(int videoId)
-    //     {
-    //         try
-    //         {
-    //             IsLoading = true;
-    //             ErrorMessage = string.Empty;
+        // Load video details and its likes by video ID  
+        // Fetch video details from the video service  
+        // Handle any exceptions that occur  
+        public async Task LoadVideoAsync(int videoId)
+        {
+            try
+            {
+                IsLoading = true;
+                ErrorMessage = string.Empty;
 
-    //             CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
-    //             await LoadLikesAsync(videoId);
-    //             if (CurrentVideo != null)
-    //             {
-    //                 Title = CurrentVideo.Title;
-    //                 Description = CurrentVideo.Description;
-    //                 Genre = CurrentVideo.Genre;
-    //             }
-    //             else
-    //             {
-    //                 ErrorMessage = "Video not found.";
-    //             }
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "Failed to load video details.";
-    //         }
-    //         finally
-    //         {
-    //             IsLoading = false;
-    //         }
-    //     }
+                CurrentVideo = await _videoService.GetVideoByIdAsync(videoId);
+                await LoadLikesAsync(videoId);
+                if (CurrentVideo != null)
+                {
+                    Title = CurrentVideo.Title;
+                    Description = CurrentVideo.Description;
+                    Genre = CurrentVideo.Genre;
+                }
+                else
+                {
+                    ErrorMessage = "Video not found.";
+                }
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "Failed to load video details.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
-    //     // Remove a like from a video as an admin  
-    //     // Confirm the action with the user  
-    //     // Handle any exceptions that occur  
-    //     public async Task RemoveLikeAsAdmin(int userId)
-    //     {
-    //         if (CurrentVideo == null) return;
+        // Remove a like from a video as an admin  
+        // Confirm the action with the user  
+        // Handle any exceptions that occur  
+        public async Task RemoveLikeAsAdmin(int userId)
+        {
+            if (CurrentVideo == null) return;
 
-    //         try
-    //         {
-    //             var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this like?");
-    //             if (!confirmed) return;
+            try
+            {
+                var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this like?");
+                if (!confirmed) return;
 
-    //             var likeDto = new LikeDto
-    //             {
-    //                 VideoID = CurrentVideo.Id,
-    //                 UserID = userId
-    //             };
+                var likeDto = new LikeDto
+                {
+                    VideoID = CurrentVideo.Id,
+                    UserID = userId
+                };
 
-    //             await _likeService.RemoveLikesForVideoAsync(CurrentVideo.Id, userId);
-    //             await LoadLikesAsync(CurrentVideo.Id);
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "Failed to remove like.";
-    //         }
-    //     }
+                await _likeService.RemoveLikesForVideoAsync(CurrentVideo.Id, userId);
+                await LoadLikesAsync(CurrentVideo.Id);
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "Failed to remove like.";
+            }
+        }
 
-    //     // Update the metadata of the current video  
-    //     // Validate all properties of the view model  
-    //     // Handle any exceptions that occur  
-    //     public async Task UpdateMetadataAsync()
-    //     {
-    //         if (CurrentVideo == null) return;
+        // Update the metadata of the current video  
+        // Validate all properties of the view model  
+        // Handle any exceptions that occur  
+        public async Task UpdateMetadataAsync()
+        {
+            if (CurrentVideo == null) return;
 
-    //         try
-    //         {
-    //             ValidateAllProperties();
-    //             if (HasErrors)
-    //             {
-    //                 return;
-    //             }
+            try
+            {
+                ValidateAllProperties();
+                if (HasErrors)
+                {
+                    return;
+                }
 
-    //             IsLoading = true;
-    //             CurrentVideo.Title = Title;
-    //             CurrentVideo.Description = Description;
-    //             CurrentVideo.Genre = Genre;
+                IsLoading = true;
+                CurrentVideo.Title = Title;
+                CurrentVideo.Description = Description;
+                CurrentVideo.Genre = Genre;
 
-    //             var updatedVideo = await _videoService.UpdateVideoAsync(CurrentVideo);
-    //             if (updatedVideo != null)
-    //             {
-    //                 await _jsRuntime.InvokeVoidAsync("alert", "Video details updated successfully!");
-    //                 _navigationManager.NavigateTo("/videos/manage");
-    //             }
-    //             else
-    //             {
-    //                 ErrorMessage = "Failed to update video details.";
-    //             }
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "An error occurred while updating video details.";
-    //         }
-    //         finally
-    //         {
-    //             IsLoading = false;
-    //         }
-    //     }
+                var updatedVideo = await _videoService.UpdateVideoAsync(CurrentVideo);
+                if (updatedVideo != null)
+                {
+                    await _jsRuntime.InvokeVoidAsync("alert", "Video details updated successfully!");
+                    _navigationManager.NavigateTo("/videos/manage");
+                }
+                else
+                {
+                    ErrorMessage = "Failed to update video details.";
+                }
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "An error occurred while updating video details.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
-    //     // Update the video file of the current video  
-    //     // Open a stream for the new video file  
-    //     // Handle any exceptions that occur  
-    //     public async Task UpdateVideoFileAsync()
-    //     {
-    //         if (CurrentVideo == null || NewVideoFile == null) return;
+        // Update the video file of the current video  
+        // Open a stream for the new video file  
+        // Handle any exceptions that occur  
+        public async Task UpdateVideoFileAsync()
+        {
+            if (CurrentVideo == null || NewVideoFile == null) return;
 
-    //         try
-    //         {
-    //             IsLoading = true;
-    //             using var videoStream = NewVideoFile.OpenReadStream(500 * 1024 * 1024); // Max 500MB
-    //             DateTime dateUploaded = DateTime.Now;
-    //             string uniqeVideWithDate = dateUploaded.ToString();
-    //             var updatedVideo = await _videoService.UpdateVideoFileAsync(CurrentVideo.Id, videoStream, NewVideoFile.Name+ uniqeVideWithDate);
+            try
+            {
+                IsLoading = true;
+                using var videoStream = NewVideoFile.OpenReadStream(500 * 1024 * 1024); // Max 500MB
+                DateTime dateUploaded = DateTime.Now;
+                string uniqeVideWithDate = dateUploaded.ToString();
+                var updatedVideo = await _videoService.UpdateVideoFileAsync(CurrentVideo.Id, videoStream, NewVideoFile.Name+ uniqeVideWithDate);
 
-    //             if (updatedVideo != null)
-    //             {
-    //                 await _jsRuntime.InvokeVoidAsync("alert", "Video file updated successfully!");
-    //                 _navigationManager.NavigateTo("/videos/manage");
-    //             }
-    //             else
-    //             {
-    //                 ErrorMessage = "Failed to update video file.";
-    //             }
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "An error occurred while updating video file.";
-    //         }
-    //         finally
-    //         {
-    //             IsLoading = false;
-    //         }
-    //     }
+                if (updatedVideo != null)
+                {
+                    await _jsRuntime.InvokeVoidAsync("alert", "Video file updated successfully!");
+                    _navigationManager.NavigateTo("/videos/manage");
+                }
+                else
+                {
+                    ErrorMessage = "Failed to update video file.";
+                }
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "An error occurred while updating video file.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
-    //     // Update the thumbnail of the current video  
-    //     // Open a stream for the new thumbnail file  
-    //     // Handle any exceptions that occur  
-    //     public async Task UpdateThumbnailAsync()
-    //     {
-    //         if (CurrentVideo == null || NewThumbnailFile == null) return;
+        // Update the thumbnail of the current video  
+        // Open a stream for the new thumbnail file  
+        // Handle any exceptions that occur  
+        public async Task UpdateThumbnailAsync()
+        {
+            if (CurrentVideo == null || NewThumbnailFile == null) return;
 
-    //         try
-    //         {
-    //             IsLoading = true;
-    //             using var thumbnailStream = NewThumbnailFile.OpenReadStream(5 * 1024 * 1024); // Max 5MB  
-    //             var updatedVideo = await _videoService.UpdateVideoThumbnailAsync(CurrentVideo.Id, thumbnailStream, NewThumbnailFile.Name);
+            try
+            {
+                IsLoading = true;
+                using var thumbnailStream = NewThumbnailFile.OpenReadStream(5 * 1024 * 1024); // Max 5MB  
+                var updatedVideo = await _videoService.UpdateVideoThumbnailAsync(CurrentVideo.Id, thumbnailStream, NewThumbnailFile.Name);
 
-    //             if (updatedVideo != null)
-    //             {
-    //                 await _jsRuntime.InvokeVoidAsync("alert", "Thumbnail updated successfully!");
-    //                 CurrentVideo = updatedVideo;
-    //             }
-    //             else
-    //             {
-    //                 ErrorMessage = "Failed to update thumbnail.";
-    //             }
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "An error occurred while updating thumbnail.";
-    //         }
-    //         finally
-    //         {
-    //             IsLoading = false;
-    //         }
-    //     }
+                if (updatedVideo != null)
+                {
+                    await _jsRuntime.InvokeVoidAsync("alert", "Thumbnail updated successfully!");
+                    CurrentVideo = updatedVideo;
+                }
+                else
+                {
+                    ErrorMessage = "Failed to update thumbnail.";
+                }
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "An error occurred while updating thumbnail.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
 
-    //     // Reset the thumbnail of the current video to the default  
-    //     // Confirm the action with the user  
-    //     // Handle any exceptions that occur  
-    //     public async Task ResetToDefaultThumbnailAsync()
-    //     {
-    //         if (CurrentVideo == null) return;
+        // Reset the thumbnail of the current video to the default  
+        // Confirm the action with the user  
+        // Handle any exceptions that occur  
+        public async Task ResetToDefaultThumbnailAsync()
+        {
+            if (CurrentVideo == null) return;
 
-    //         try
-    //         {
-    //             IsLoading = true;
-    //             var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to reset to the default thumbnail?");
-    //             if (!confirmed) return;
+            try
+            {
+                IsLoading = true;
+                var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to reset to the default thumbnail?");
+                if (!confirmed) return;
 
-    //             bool resetOk = await _videoService.ResetThumbnail(CurrentVideo.Id);
-    //             if (resetOk)
-    //             {
-    //                 await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail successful!");
-    //                 NewThumbnailFile = null;
-    //                 await LoadVideoAsync(CurrentVideo.Id);
-    //             }
-    //             else
-    //             {
-    //                 await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail not successful!");
-    //             }
-    //         }
-    //         catch (Exception)
-    //         {
-    //             ErrorMessage = "Failed to reset thumbnail.";
-    //         }
-    //         finally
-    //         {
-    //             IsLoading = false;
-    //         }
-    //     }
+                bool resetOk = await _videoService.ResetThumbnail(CurrentVideo.Id);
+                if (resetOk)
+                {
+                    await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail successful!");
+                    NewThumbnailFile = null;
+                    await LoadVideoAsync(CurrentVideo.Id);
+                }
+                else
+                {
+                    await _jsRuntime.InvokeVoidAsync("alert", "Reset to default thumbnail not successful!");
+                }
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "Failed to reset thumbnail.";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
     }
 }

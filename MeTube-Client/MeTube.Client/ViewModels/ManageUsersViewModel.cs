@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using MeTube.Client.Models;
 using MeTube.Client.Services;
-using MeTube.DTO;
+// using MeTube.DTO;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Collections.ObjectModel;
@@ -53,13 +53,13 @@ namespace MeTube.Client.ViewModels.ManageUsersViewModels
         // Loads all users from the user service and populates the AllUsers and FilteredUsers collections.
         public async Task LoadUsers()
         {
-            var allUsers = await _userService.GetAllUsersAsync();
-            AllUsers.Clear();
-            foreach (var user in allUsers.OrderBy(a => a.Username))
-            {
-                AllUsers.Add(user);
-                FilteredUsers.Add(user);
-            }
+            // var allUsers = await _userService.GetAllUsersAsync();
+            // AllUsers.Clear();
+            // foreach (var user in allUsers.OrderBy(a => a.Username))
+            // {
+            //     AllUsers.Add(user);
+            //     FilteredUsers.Add(user);
+            // }
         }
 
         // Opens the user card for editing and sets the selected user and chosen user ID.
@@ -85,8 +85,9 @@ namespace MeTube.Client.ViewModels.ManageUsersViewModels
         // Retrieves the user ID based on the user's email.
         private async Task<int> GetUserId(User user)
         {
-            var hasse = await _userService.GetUserIdByEmailAsync(user.Email);
-            return hasse.Value;
+            // var hasse = await _userService.GetUserIdByEmailAsync(user.Email);
+            // return hasse.Value;
+            return 1;
         }
 
         // Deletes the specified user after confirmation and reloads the user list.
@@ -96,30 +97,31 @@ namespace MeTube.Client.ViewModels.ManageUsersViewModels
             bool securedelete = await _jsRuntime.InvokeAsync<bool>("confirm", $"You sure you want to delete this user?");
             if (securedelete)
             {
-                CloseUserCard();
-                bool response = await _userService.DeleteUserAsync(userId);
-                if (response)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "User succesfully deleted!");
-                    await LoadUsers();
-                }
-                else
-                    await _jsRuntime.InvokeVoidAsync("alert", "Unable to succesfully delete user!");
+                // CloseUserCard();
+                // bool response = await _userService.DeleteUserAsync(userId);
+                // if (response)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "User succesfully deleted!");
+                //     await LoadUsers();
+                // }
+                // else
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Unable to succesfully delete user!");
             }
         }
 
         // Checks if the user already exists based on username and email.
         private async Task<bool> CheckIfUserExist(User user)
         {
-            Dictionary<string, string> response = await _userService.DoesUserExistAsync(user.Username, user.Email);
-            string userExists = response.Keys.FirstOrDefault();
-            string responseMessage = response[userExists];
-            bool userDoExist = Convert.ToBoolean(userExists);
-            await _jsRuntime.InvokeVoidAsync("alert", responseMessage);
-            if (userDoExist)
-                return true;
-            else
-                return false;
+            // Dictionary<string, string> response = await _userService.DoesUserExistAsync(user.Username, user.Email);
+            // string userExists = response.Keys.FirstOrDefault();
+            // string responseMessage = response[userExists];
+            // bool userDoExist = Convert.ToBoolean(userExists);
+            // await _jsRuntime.InvokeVoidAsync("alert", responseMessage);
+            // if (userDoExist)
+            //     return true;
+            // else
+            //     return false;
+            return false;
         }
 
         // Saves changes to the user after confirmation and reloads the user list.
@@ -134,26 +136,26 @@ namespace MeTube.Client.ViewModels.ManageUsersViewModels
                     return;
             }
 
-            UpdateUserDto dto = new UpdateUserDto
-            {
-                Username = user.Username,
-                Email = user.Email,
-                Password = user.Password,
-                Role = user.Role,
-            };
+            // UpdateUserDto dto = new UpdateUserDto
+            // {
+            //     Username = user.Username,
+            //     Email = user.Email,
+            //     Password = user.Password,
+            //     Role = user.Role,
+            // };
 
             bool secureupdate = await _jsRuntime.InvokeAsync<bool>("confirm", "You sure you want to update this user?");
             if (secureupdate)
             {
-                bool response = await _userService.UpdateUserAsync(ChosenUserId, dto);
-                string message = string.Empty;
-                if (response)
-                {
-                    await _jsRuntime.InvokeVoidAsync("alert", "User succesfully saved!");
-                    CloseUserCard();
-                }
-                else
-                    await _jsRuntime.InvokeVoidAsync("alert", "Unable to succesfully update user!");
+                // bool response = await _userService.UpdateUserAsync(ChosenUserId, dto);
+                // string message = string.Empty;
+                // if (response)
+                // {
+                //     await _jsRuntime.InvokeVoidAsync("alert", "User succesfully saved!");
+                //     CloseUserCard();
+                // }
+                // else
+                //     await _jsRuntime.InvokeVoidAsync("alert", "Unable to succesfully update user!");
             }
             await LoadUsers();
         }
