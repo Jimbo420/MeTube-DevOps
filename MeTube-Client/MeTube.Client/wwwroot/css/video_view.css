@@ -1,0 +1,92 @@
+.video-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.video-player {
+    width: 100%;
+    border-radius: 8px;
+    aspect-ratio: 16/9;
+    background: #000;
+}
+
+.like-section .btn {
+    transition: transform 0.2s ease-in-out;
+}
+
+    .like-section .btn:active {
+        transform: scale(0.95);
+    }
+
+.bi-hand-thumbs-up-fill {
+    transition: color 0.2s;
+}
+
+.btn-primary .bi-hand-thumbs-up-fill {
+    color: white;
+}
+
+.btn-outline-primary .bi-hand-thumbs-up-fill {
+    color: #0d6efd;
+}
+
+/* Animation for popup effect */
+@keyframes thumbs-up-pop {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.like-section .btn.liked {
+    animation: thumbs-up-pop 0.3s ease !important;
+}
+
+.comment-box {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.comment-item {
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+.modal {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 400px;
+    text-align: center;
+}
+
+    .modal.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
