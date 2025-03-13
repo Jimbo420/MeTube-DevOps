@@ -28,8 +28,8 @@ namespace MeTube_DevOps.UserService.IntegrationTests
             // Add some user data to the database
             var expected1 = new User { Id = 666, Username = "user1", Email = "test1@mail.com", Password = "password1", Role = "User" };
             var expected2 = new User { Id = 1337, Username = "user2", Email = "test2@mail.com", Password = "password2", Role = "User" };
-            await _apiContext.PostAsync("http://localhost:5218/api/User/signup", new APIRequestContextOptions {DataObject = expected1});
-            await _apiContext.PostAsync("http://localhost:5218/api/User/signup", new APIRequestContextOptions {DataObject = expected2});
+            await _apiContext.PostAsync("http://localhost:5000/api/User/signup", new APIRequestContextOptions {DataObject = expected1});
+            await _apiContext.PostAsync("http://localhost:5000/api/User/signup", new APIRequestContextOptions {DataObject = expected2});
 
             // Act
             var response = await _apiContext.GetAsync("http://localhost:5218/api/User/manageUsers");
