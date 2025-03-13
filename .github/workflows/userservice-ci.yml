@@ -47,14 +47,17 @@ jobs:
                 - ACCEPT_EULA=Y
                 - SA_PASSWORD=YourSecretPass123
                 - MSSQL_PID=Express
+                - MSSQL_AGENT_ENABLED=true
               ports:
                 - "1433:1433"
+              # More forgiving healthcheck
               healthcheck:
-                test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT 1" -b
-                interval: 5s
-                timeout: 3s
-                retries: 10
-                start_period: 10s
+                # Let's use a simpler check with a shell command that works in both sqlcmd versions
+                test: bash -c "if [ -z \$$(ls -l /var/opt/mssql/log/errorlog* 2>/dev/null) ]; then exit 1; else grep -q 'Server is ready for client connections' /var/opt/mssql/log/errorlog*; fi"
+                interval: 10s
+                timeout: 5s
+                retries: 20
+                start_period: 30s
             
             userservice:
               build:
@@ -62,22 +65,22 @@ jobs:
                 dockerfile: ci.Dockerfile
               ports:
                 - "5218:5218"
-              depends_on:
-                db:
-                  condition: service_healthy
               environment:
                 - ASPNETCORE_ENVIRONMENT=Development
                 - ASPNETCORE_URLS=http://+:5218
                 - ConnectionStrings__DefaultConnection=Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30
+              depends_on:
+                db:
+                  condition: service_healthy
               healthcheck:
                 test: curl --fail http://localhost:5218/swagger/index.html || exit 1
-                interval: 5s
-                timeout: 3s
-                retries: 10
-                start_period: 10s
+                interval: 10s
+                timeout: 5s
+                retries: 15
+                start_period: 20s
           EOF
           
-          # Create a CI-specific Dockerfile - FIXED to include ALL project files
+          # Create a CI-specific Dockerfile
           cat > ci.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
           WORKDIR /app
@@ -151,12 +154,33 @@ jobs:
           docker compose -f docker-compose.ci.yml up -d
           
           echo "Waiting for services to be healthy..."
+          
+          # Wait for SQL Server to start specifically
+          echo "Waiting for SQL Server to initialize..."
           for i in {1..30}; do
-            if docker compose -f docker-compose.ci.yml ps | grep -q "healthy"; then
-              echo "Services are ready!"
+            if docker compose -f docker-compose.ci.yml exec -T db bash -c "ls -l /var/opt/mssql/log/errorlog* 2>/dev/null | grep -q ." && \
+               docker compose -f docker-compose.ci.yml exec -T db bash -c "grep -q 'Server is ready for client connections' /var/opt/mssql/log/errorlog*"; then
+              echo "SQL Server is ready!"
               break
             fi
-            echo "Attempt $i: Waiting for services to initialize..."
+            echo "Attempt $i: SQL Server still initializing..."
+            if [ $i -eq 10 ] || [ $i -eq 20 ]; then
+              echo "Checking container status:"
+              docker compose -f docker-compose.ci.yml ps
+              echo "SQL Server logs:"
+              docker compose -f docker-compose.ci.yml logs db --tail=20
+            fi
+            sleep 5
+          done
+          
+          # Now wait for both services to be healthy
+          for i in {1..30}; do
+            HEALTHY_COUNT=$(docker compose -f docker-compose.ci.yml ps --format json | grep -c '"Health":"healthy"')
+            if [ "$HEALTHY_COUNT" -eq "2" ]; then
+              echo "All services are healthy!"
+              break
+            fi
+            echo "Attempt $i: Waiting for all services to be healthy..."
             sleep 5
             
             if [ $i -eq 10 ] || [ $i -eq 20 ]; then
