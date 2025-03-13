@@ -24,7 +24,7 @@ namespace MeTube_DevOps.UserService.Controllers
 
     // GET: all users
     [HttpGet("manageUsers")]
-    public async Task<IActionResult> GetAllusers()
+    public async Task<IActionResult> GetAllUsers()
     {
         var users = await _unitOfWork.Users.GetAllAsync();
         if (!users.Any())
