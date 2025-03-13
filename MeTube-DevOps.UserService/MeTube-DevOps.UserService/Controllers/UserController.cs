@@ -36,6 +36,7 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: user by id
+    // Adding another comment
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {

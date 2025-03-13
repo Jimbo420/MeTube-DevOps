@@ -76,6 +76,14 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      # Build the Docker image for the UserService
+      - name: Build Docker image
+        run: docker build -t $CONTAINER_NAME MeTube-DevOps.UserService
+
+      # Run the Docker container for the UserService
+      - name: Run Docker container
+        run: docker run -d -p 5000:80 --name $CONTAINER_NAME $CONTAINER_NAME
+
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
       # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
@@ -85,3 +93,9 @@ jobs:
       # - The "dotnet test" command finds all tests in MeTube-DevOps.UserServiceTests and executes them
       - name: Test
         run: dotnet test MeTube-DevOps.UserService
+
+      # Stop and remove the Docker container after tests are done
+      - name: Stop and remove Docker container
+        run: |
+          docker stop $CONTAINER_NAME
+          docker rm $CONTAINER_NAME
