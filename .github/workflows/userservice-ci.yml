@@ -3,12 +3,12 @@ name: Integrate MeTube-DevOps.UserService
 on:
   push:
     branches:
-      - main
+      - SSCITEST
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
     branches:
-      - main
+      - SSCITEST
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:
