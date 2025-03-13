@@ -84,6 +84,14 @@ jobs:
       - name: Run Docker container
         run: docker run -d -p 5218:80 --name $CONTAINER_NAME $CONTAINER_NAME
 
+      # Wait for the service to be ready
+      - name: Wait for service
+        run: |
+          echo "Waiting for service to be ready..."
+          until curl -s http://localhost:5218/health; do
+            sleep 5
+          done
+          
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
       # In this case we are running the command "dotnet test MeTube-DevOps.UserService"
