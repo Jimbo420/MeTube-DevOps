@@ -25,7 +25,7 @@ namespace MeTube_DevOps.UserService.IntegrationTests
         public async Task HttpGet_Should_Return_All_Users()
         {
             // Arrange
-            // Add some user data to the database
+            // Add some user data to the database with user data
             var expected1 = new User { Id = 666, Username = "user1", Email = "test1@mail.com", Password = "password1", Role = "User" };
             var expected2 = new User { Id = 1337, Username = "user2", Email = "test2@mail.com", Password = "password2", Role = "User" };
             await _apiContext.PostAsync("http://localhost:5218/api/User/signup", new APIRequestContextOptions {DataObject = expected1});

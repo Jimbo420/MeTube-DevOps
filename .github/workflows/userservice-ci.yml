@@ -23,6 +23,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Verify Docker Installation
+        run: |
+          echo "Docker version:"
+          docker --version
+          
+          echo "Docker info:"
+          docker info
+          
+          echo "Docker Compose version:"
+          docker compose version
+          
+          echo "Verify Docker is running:"
+          docker run --rm hello-world
+      
       - name: Start SQL Server
         run: |
           docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourSecretPass123" \
