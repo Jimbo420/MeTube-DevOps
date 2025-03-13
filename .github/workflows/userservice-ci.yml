@@ -27,21 +27,26 @@ jobs:
         run: |
           docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourSecretPass123" \
             -e "MSSQL_PID=Express" \
+            --name sql-server \
             -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
       
       - name: Verify SQL Server
         run: |
           echo "Waiting for SQL Server to start..."
           for i in {1..30}; do
-            if docker exec $(docker ps -q) /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION"; then
-              echo "SQL Server is ready!"
-              break
+            # Check if container is running
+            if [ "$(docker inspect -f '{{.State.Running}}' sql-server 2>/dev/null)" == "true" ]; then
+              # Run sqlcmd inside the container
+              if docker exec sql-server /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION" -b; then
+                echo "SQL Server is ready!"
+                break
+              fi
             fi
             echo "Attempt $i: Waiting for SQL Server..."
             sleep 5
             if [ $i -eq 30 ]; then
               echo "SQL Server failed to start. Checking logs..."
-              docker logs $(docker ps -q)
+              docker logs sql-server
               exit 1
             fi
           done
