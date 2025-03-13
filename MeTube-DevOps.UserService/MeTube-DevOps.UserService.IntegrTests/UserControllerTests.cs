@@ -37,7 +37,6 @@ namespace MeTube_DevOps.UserService.IntegrationTests
             // Assert
             response.Status.Should().Be(200);
 
-            // Change this line to deserialize to UserDto instead of User
             var users = JsonSerializer.Deserialize<List<UserDto>>(await response.TextAsync(), _serializerOptions);
             users.Should().NotBeNull();
             ArgumentNullException.ThrowIfNull(users);
@@ -47,17 +46,11 @@ namespace MeTube_DevOps.UserService.IntegrationTests
             actual1?.Id.Should().Be(expected1.Id);
             actual1?.Username.Should().Be(expected1.Username);
             actual1?.Email.Should().Be(expected1.Email);
-            
-            // Don't check for Role if it's not in the UserDto
-            // actual1?.Role.Should().Be(expected1.Role);
 
             var actual2 = users.FirstOrDefault(u => u.Id == expected2.Id);
             actual2?.Id.Should().Be(expected2.Id);
             actual2?.Username.Should().Be(expected2.Username);
             actual2?.Email.Should().Be(expected2.Email);
-            
-            // Don't check for Role if it's not in the UserDto
-            // actual2?.Role.Should().Be(expected2.Role);
 
             _output.WriteLine($"items: Count={users.Count}");
         }
