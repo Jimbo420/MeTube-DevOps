@@ -64,21 +64,14 @@ jobs:
           dotnet-version: 9.0.101
 
       # Run the UserService
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
-
-      - name: Check Docker files exist
-        working-directory: MeTube-DevOps.UserService
+      - name: Run UserService
         run: |
-          ls -la
-          if [ -f "docker-compose.yml" ]; then echo "docker-compose.yml exists"; else echo "docker-compose.yml is missing"; fi
+          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
 
-      - name: Start required services
-        working-directory: MeTube-DevOps.UserService
-        run: docker-compose up -d
-
-      - name: Wait for services to be ready
-        run: sleep 10s
+      # Wait for the UserService to start
+      - name: Wait for UserService
+        run: |
+          sleep 120
 
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
