@@ -17,8 +17,7 @@ jobs:
     
     env:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: "http://localhost:5218"
-      ConnectionStrings__DefaultConnection: "Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
+      DB_CONNECTION_STRING: "Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
     
     steps:
       - uses: actions/checkout@v4
@@ -37,112 +36,187 @@ jobs:
           echo "Verify Docker is running:"
           docker run --rm hello-world
       
-      - name: Start SQL Server
+      - name: Update docker-compose.yml for CI
         run: |
-          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourSecretPass123" \
-            -e "MSSQL_PID=Express" \
-            --name sql-server \
-            -p 1433:1433 -d mcr.microsoft.com/mssql/server:2019-latest
+          cd MeTube-DevOps.UserService
+          cat > docker-compose.ci.yml << EOF
+          version: '3.8'
+          
+          services:
+            db:
+              image: mcr.microsoft.com/mssql/server:2019-latest
+              environment:
+                - ACCEPT_EULA=Y
+                - SA_PASSWORD=YourSecretPass123
+                - MSSQL_PID=Express
+              ports:
+                - "1433:1433"
+              healthcheck:
+                test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT 1" -b
+                interval: 5s
+                timeout: 3s
+                retries: 10
+                start_period: 10s
+            
+            userservice:
+              build:
+                context: .
+                dockerfile: ci.Dockerfile
+              ports:
+                - "5218:5218"
+              depends_on:
+                db:
+                  condition: service_healthy
+              environment:
+                - ASPNETCORE_ENVIRONMENT=Development
+                - ASPNETCORE_URLS=http://+:5218
+                - ConnectionStrings__DefaultConnection=Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30
+              healthcheck:
+                test: curl --fail http://localhost:5218/swagger/index.html || exit 1
+                interval: 5s
+                timeout: 3s
+                retries: 10
+                start_period: 10s
+          EOF
+          
+          # Create a CI-specific Dockerfile
+          cat > ci.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+          WORKDIR /app
+          
+          # Copy only files needed for restore first for better caching
+          COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.sln .
+          RUN dotnet restore
+          
+          # Copy the rest of the source
+          COPY . .
+          
+          # Patch Program.cs to fix health check issue
+          RUN sed -i '/app.MapHealthChecks/d' ./MeTube-DevOps.UserService/Program.cs
+          
+          # Build and publish
+          RUN dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj -c Release
+          
+          # Runtime image
+          FROM mcr.microsoft.com/dotnet/aspnet:9.0
+          WORKDIR /app
+          COPY --from=build /app/MeTube-DevOps.UserService/bin/Release/net9.0/publish .
+          
+          # Install EF Core tools for migrations
+          RUN apt-get update && \
+              apt-get install -y curl && \
+              apt-get clean
+          
+          EXPOSE 5218
+          ENTRYPOINT ["dotnet", "MeTube-DevOps.UserService.dll"]
+          EOF
 
-      - name: Verify SQL Server
+      - name: Unit Tests via Docker
         run: |
-          echo "Waiting for SQL Server to start..."
+          cd MeTube-DevOps.UserService
+          docker build -t userservice-test -f ci.unittest.Dockerfile .
+          docker run --rm userservice-test
+          
+      - name: Create Test Dockerfile
+        run: |
+          cd MeTube-DevOps.UserService
+          cat > ci.unittest.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+          
+          # Copy only files needed for restore first for better caching
+          COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
+          COPY MeTube-DevOps.UserService.sln .
+          RUN dotnet restore
+          
+          # Copy the rest of the source
+          COPY . .
+          
+          # Run unit tests
+          CMD ["dotnet", "test", "MeTube-DevOps.UserService.UnitTests"]
+          EOF
+
+      - name: Build and Start Services
+        run: |
+          cd MeTube-DevOps.UserService
+          docker compose -f docker-compose.ci.yml build
+          docker compose -f docker-compose.ci.yml up -d
+          
+          echo "Waiting for services to be healthy..."
           for i in {1..30}; do
-            if docker exec sql-server /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P YourSecretPass123 -Q "SELECT @@VERSION" -C; then
-              echo "SQL Server is ready!"
+            if docker compose -f docker-compose.ci.yml ps | grep -q "healthy"; then
+              echo "Services are ready!"
               break
             fi
-            echo "Attempt $i: Waiting for SQL Server to initialize..."
+            echo "Attempt $i: Waiting for services to initialize..."
             sleep 5
-            if [ $i -eq 30 ]; then
-              echo "SQL Server failed to initialize. Checking logs..."
-              docker logs sql-server
-              exit 1
-            fi
-          done
-      
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.101
-
-      - name: Install EF Core CLI
-        run: dotnet tool install --global dotnet-ef
-          
-      - name: Apply Migrations
-        run: |
-          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          dotnet ef database update --verbose
-      
-      - name: Build Solution
-        run: |
-          dotnet build MeTube-DevOps.UserService
-
-      - name: Install Playwright browsers
-        run: |
-          cd MeTube-DevOps.UserService
-          dotnet tool install --global Microsoft.Playwright.CLI
-          playwright install
-      
-      - name: Run Unit Tests
-        run: |
-          cd MeTube-DevOps.UserService
-          dotnet test MeTube-DevOps.UserService.UnitTests
-      
-      # Create a temporary Program file for CI that removes the health check
-      - name: Prepare Service for CI
-        run: |
-          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          # Create a backup of the original Program.cs
-          cp Program.cs Program.cs.bak
-          # Create a modified version without the health check mapping
-          sed '/app.MapHealthChecks/d' Program.cs > Program.cs.temp
-          mv Program.cs.temp Program.cs
-          
-      - name: Start UserService
-        run: |
-          cd MeTube-DevOps.UserService/MeTube-DevOps.UserService
-          # Pass the connection string directly
-          export ConnectionStrings__DefaultConnection="Server=localhost;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
-          nohup dotnet run --urls="http://0.0.0.0:5218" > userservice.log 2>&1 &
-          echo $! > /tmp/userservice.pid
-          
-          # Wait for service to start by checking an existing API endpoint
-          echo "Waiting for UserService to start..."
-          for i in {1..30}; do
-            # Try to hit the swagger endpoint instead of health
-            if curl -s http://localhost:5218/swagger/index.html > /dev/null; then
-              echo "UserService is ready!"
-              break
-            fi
             
             if [ $i -eq 10 ] || [ $i -eq 20 ]; then
-              echo "Checking logs after attempt $i:"
-              tail -20 userservice.log
-              echo "Process status:"
-              ps -p $(cat /tmp/userservice.pid) || echo "Process not running!"
+              echo "Service status after attempt $i:"
+              docker compose -f docker-compose.ci.yml ps
+              docker compose -f docker-compose.ci.yml logs --tail=20
             fi
             
-            echo "Attempt $i: Waiting for UserService..."
-            sleep 2
-            
             if [ $i -eq 30 ]; then
-              echo "UserService failed to start. Full logs:"
-              cat userservice.log
+              echo "Services failed to start. Checking logs..."
+              docker compose -f docker-compose.ci.yml logs
               exit 1
             fi
           done
       
+      - name: Apply Migrations
+        run: |
+          cd MeTube-DevOps.UserService
+          docker compose -f docker-compose.ci.yml exec userservice dotnet ef database update
+
+      - name: Create Integration Test Dockerfile
+        run: |
+          cd MeTube-DevOps.UserService
+          cat > ci.integrationtest.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+          
+          # Install required dependencies
+          RUN apt-get update && \
+              apt-get install -y wget gpg curl unzip && \
+              curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+              apt-get install -y nodejs && \
+              npm i -g playwright@latest && \
+              npx playwright install-deps && \
+              npx playwright install chromium
+          
+          # Copy only files needed for restore first for better caching
+          COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
+          COPY MeTube-DevOps.UserService.sln .
+          RUN dotnet restore
+          
+          # Copy the rest of the source
+          COPY . .
+          
+          # Install Playwright
+          RUN dotnet tool install --global Microsoft.Playwright.CLI
+          ENV PATH="${PATH}:/root/.dotnet/tools"
+          RUN playwright install
+          
+          # Run integration tests
+          CMD ["dotnet", "test", "MeTube-DevOps.UserService.IntegrTests"]
+          EOF
+          
       - name: Run Integration Tests
         run: |
           cd MeTube-DevOps.UserService
-          dotnet test MeTube-DevOps.UserService.IntegrTests
+          # Update test host in integration tests to point to the container
+          sed -i 's/http:\/\/localhost:5218/http:\/\/userservice:5218/g' MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs
+          
+          # Build and run integration tests
+          docker build -t userservice-integration-test -f ci.integrationtest.Dockerfile .
+          docker run --network=metube-devops_userservice_default userservice-integration-test
         
       - name: Cleanup
         if: always()
         run: |
-          if [ -f /tmp/userservice.pid ]; then
-            kill $(cat /tmp/userservice.pid) || true
-            echo "UserService stopped"
-          fi
-          docker stop sql-server || true
-          docker rm sql-server || true
+          cd MeTube-DevOps.UserService
+          docker compose -f docker-compose.ci.yml down -v
