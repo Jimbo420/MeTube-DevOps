@@ -1,4 +1,4 @@
-# 
+#
 # GitHub Actions workflow to test the MeTube-DevOps.UserService microservice
 #
 
@@ -6,16 +6,15 @@ name: Integrate MeTube-DevOps.UserService
 
 # Controls when the workflow will run
 on:
-
   # This configuration triggers the workflow:
   # - On a "push" ...
   # - ... to the "main" branch ...
   # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
-  #   ("/**" means "all subfolders recursively"). 
+  #   ("/**" means "all subfolders recursively").
   # As a result, the workflow will only run when changes are made to the UserService microservice.
   push:
     branches:
-      - main
+      - GitHubActions-AB
     paths:
       - MeTube-DevOps.UserService/**
 
@@ -25,10 +24,10 @@ on:
   # - ... but only when changes have been made to any folder/file under the "MeTube-DevOps.UserService" folder, including subfolders.
   pull_request:
     branches:
-      - main
+      - GitHubActions-AB
     paths:
       - MeTube-DevOps.UserService/**
-  
+
   # The configuration allows the workflow to be triggers manually through the GitHub Actions user interface.
   # When choosing the workflow in the left margin under the Actions tab in GitHub's Web UI,
   # there will be a "Run" drop-down listbox in the Web UI's far right, which can be used to manually trigger the workflow.
@@ -37,11 +36,9 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 # Jobs are defined as entries under "jobs"
 jobs:
-
   # This workflow contains a single job called "integrate" (the name will be shown in the workflow's output when it's run).
   # We can call this anything we like.
   integrate:
-    
     # Runs on the latest version of Ubuntu
     # GitHub will create a virtual machine or container, where we can choose what image to use under "runs-on"
     # In this case, the virtual machine/container is based on the latest version of Ubuntu (a Linux distro)
@@ -50,10 +47,9 @@ jobs:
     # Under "env", we can define environment variables that will be available in the virtual machine/container created above.
     env:
       ASPNETCORE_URLS: "http://localhost:5218"
-    
+
     # "Steps" represents a sequence of tasks that will be executed as part of the job
     steps:
-      
       # The "uses" instruction is used to execute a pre-defined action
       # In this case, the "actions/checkout@v4" is used
       # This action basically does a "git clone" in the virtual machine/container created above to copy this repository to it
@@ -68,14 +64,8 @@ jobs:
           dotnet-version: 9.0.101
 
       # Run the UserService
-      - name: Run UserService
-        run: |
-          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
-
-      # Wait for the UserService to start
-      - name: Wait for UserService
-        run: |
-          sleep 120    
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
 
       # This step is given the name "Test"
       # Then the "run" instruction is used to run a command inside the virtual machine/container created above
