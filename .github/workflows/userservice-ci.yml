@@ -70,7 +70,7 @@ jobs:
       # Run the UserService
       - name: Run UserService
         run: |
-          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
+          nohup dotnet run --project MeTube-DevOps.UserService/MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj &
 
       # Wait for the UserService to start
       - name: Wait for UserService
