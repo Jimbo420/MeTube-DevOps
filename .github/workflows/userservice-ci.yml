@@ -187,18 +187,40 @@ jobs:
       - name: Apply Migrations
         run: |
           cd MeTube-DevOps.UserService
-          # Use a wrapper script to bypass SSL issues with sqlcmd in EF tools
-          cat > run-migrations.sh << 'EOF'
-          #!/bin/bash
-          dotnet tool install -g dotnet-ef
-          export PATH="$PATH:/root/.dotnet/tools"
-          # Set the connection string with TrustServerCertificate=true
-          export ConnectionStrings__DefaultConnection="Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
-          dotnet ef database update --project MeTube-DevOps.UserService
+          
+          # Create a migration Dockerfile
+          cat > ci.migrations.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+          
+          # Copy everything needed for migrations
+          COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService/appsettings*.json ./MeTube-DevOps.UserService/
+          COPY MeTube-DevOps.UserService.sln .
+          
+          # Restore packages and install EF tools
+          RUN dotnet restore
+          RUN dotnet tool install --global dotnet-ef
+          ENV PATH="${PATH}:/root/.dotnet/tools"
+          
+          # Copy the rest of the source code
+          COPY . .
+          
+          # Set the entry point to run migrations
+          ENTRYPOINT ["dotnet", "ef", "database", "update", "--project", "MeTube-DevOps.UserService"]
           EOF
-          chmod +x run-migrations.sh
-          docker compose -f docker-compose.ci.yml cp run-migrations.sh userservice:/app/
-          docker compose -f docker-compose.ci.yml exec -T userservice /bin/bash /app/run-migrations.sh
+          
+          # Build migration image
+          docker build -t migration-runner -f ci.migrations.Dockerfile .
+          
+          # Get the network name from the running containers
+          NETWORK_NAME=$(docker compose -f docker-compose.ci.yml ps --format json | grep -o '"Networks":"[^"]*"' | head -n1 | cut -d'"' -f4)
+          echo "Using network: $NETWORK_NAME"
+          
+          # Run migrations in the same network with the connection string
+          docker run --rm --network=$NETWORK_NAME \
+            -e ConnectionStrings__DefaultConnection="Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30" \
+            migration-runner
 
       - name: Create Integration Test Dockerfile
         run: |
@@ -238,8 +260,13 @@ jobs:
       - name: Run Integration Tests
         run: |
           cd MeTube-DevOps.UserService
-          # Update test host in integration tests to point to the container
-          sed -i 's/http:\/\/localhost:5218/http:\/\/userservice:5218/g' MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs
+          # Create a modified version of the test file with the correct URLs
+          cat > MeTube-DevOps.UserService.IntegrTests/UserControllerTestsModified.cs << EOF
+          $(cat MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs | sed 's/http:\/\/localhost:5218/http:\/\/userservice:5218/g')
+          EOF
+          
+          # Replace the original test file
+          mv MeTube-DevOps.UserService.IntegrTests/UserControllerTestsModified.cs MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs
           
           # Build and run integration tests
           docker build -t userservice-integration-test -f ci.integrationtest.Dockerfile .
