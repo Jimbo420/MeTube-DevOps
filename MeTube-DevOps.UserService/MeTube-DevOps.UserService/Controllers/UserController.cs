@@ -23,8 +23,10 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: all users
+    // Adding a comment
+    // another one
     [HttpGet("manageUsers")]
-    public async Task<IActionResult> GetAllusers()
+    public async Task<IActionResult> GetAllUsers()
     {
         var users = await _unitOfWork.Users.GetAllAsync();
         if (!users.Any())
@@ -35,18 +37,27 @@ namespace MeTube_DevOps.UserService.Controllers
         return Ok(userDtos);
     }
 
+    // GET: user by id
+    // Adding another comment
+    // Another one
+    // Another one 
+    // Another one
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
         var user = await _unitOfWork.Users.GetUserByIdAsync(id);
         if (user == null)
         {
-            return NotFound(new { Message = "User not found" });
+            return NotFound(new { Message = "User is not found" });
         }
         var userDto = _mapper.Map<UserDto>(user);
         return Ok(userDto);
     }
 
+    // POST: signup
+    // Another one
+    // another one
+    // pls work
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {

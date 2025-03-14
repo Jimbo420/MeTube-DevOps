@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metube-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metube-devops-userservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metube-devops-userservice
+  template:
+    metadata:
+      labels:
+        app: metube-devops-userservice
+    spec:
+      containers:
+        - name: metube-devops-userservice
+          image: metube-devops.userservice:1
+          imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          env:
+            - name: metube-devops-userservice_PORT
+              value: "80"
+          ports:
+            - containerPort: 80
+---
+# 🟢 Deployment för databasen
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metube-devops-userservice-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metube-devops-userservice-db
+  template:
+    metadata:
+      labels:
+        app: metube-devops-userservice-db
+    spec:
+      containers:
+        - name: mssql
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: ACCEPT_EULA
+              value: "Y"
+            - name: SA_PASSWORD
+              value: "YourSecretPass123" # ⚠️ Använd en Secret i produktion
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "1000m"
+          volumeMounts:
+            - name: mssqldb
+              mountPath: /var/opt/mssql
+      volumes:
+        - name: mssqldb
+          persistentVolumeClaim:
+            claimName: metube-db-pvc
+---
+# 🟢 Service för UserService
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-devops-userservice
+spec:
+  selector:
+    app: metube-devops-userservice
+  type: LoadBalancer 
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 80
+---
+# 🟢 Service för databasen
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-devops-userservice-db
+spec:
+  selector:
+    app: metube-devops-userservice-db
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433
+  type: ClusterIP

@@ -1,5 +1,5 @@
 using MeTube_DevOps.UserService.Repositories;
-using MeTube_DevOps.UserService.UserProfile;
+using MeTube_DevOps.UserService.Profiles;
 using MeTube_DevOps.UserService.Data;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
@@ -19,7 +19,9 @@ builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-}); 
+});
+
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
@@ -34,5 +36,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHealthChecks("/health");
 
 app.Run();
