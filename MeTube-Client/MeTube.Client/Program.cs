@@ -11,6 +11,7 @@ using MeTube.Client.ViewModels.LogoutViewModels;
 using MeTube.Client.ViewModels.ManageUsersViewModels;
 using MeTube.Client.ViewModels.SignupViewModels;
 using MeTube.Client.ViewModels.VideoViewModels;
+using Microsoft.JSInterop;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -41,7 +42,8 @@ builder.Services.AddTransient<UploadVideoViewModel>();
 builder.Services.AddTransient<UserHistoryViewModel>();
 builder.Services.AddTransient<AdminHistoryViewModel>();
 
-// builder.Services.AddSingleton<IJSRuntimeWrapper, JSRuntimeWrapper>();
+builder.Services.AddSingleton<IJSRuntimeWrapper>();
+builder.Services.AddSingleton<JSRuntimeWrapper>();
 builder.Services.AddSingleton<IClientService>();
 
 builder.Services.AddSingleton<IUserService>();
