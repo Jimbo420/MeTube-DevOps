@@ -19,7 +19,9 @@ builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-}); 
+});
+
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
