@@ -23,8 +23,6 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: all users
-    // Adding a comment
-    // another one
     [HttpGet("manageUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -38,8 +36,6 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: user by id
-    // FINAL FIX THIS WORKS NOW
-    // DeFINITELY FINAL FIX
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
@@ -53,9 +49,6 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // POST: signup
-    // Another one
-    // another one
-    // pls work
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
