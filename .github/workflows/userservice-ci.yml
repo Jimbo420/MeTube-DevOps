@@ -2,11 +2,11 @@ name: Integrate MeTube-DevOps.UserService
 
 on:
   push:
-    branches: [ SSCITEST ]
+    branches: [ Integrating-Client ]
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
-    branches: [ SSCITEST ]
+    branches: [ Integrating-Client ]
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:
