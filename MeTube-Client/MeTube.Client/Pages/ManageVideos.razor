@@ -137,9 +137,9 @@
 @code {
     private bool IsAuthenticated = false;
     private string UserRole = string.Empty;
-    protected override async Task OnInitializedAsync()
+    @* protected override async Task OnInitializedAsync()
     {
-        @* Dictionary<string, string> response = await UserService.IsUserAuthenticated();
+        Dictionary<string, string> response = await UserService.IsUserAuthenticated();
         UserRole = response["Role"];
         IsAuthenticated = Convert.ToBoolean(response["IsAuthenticated"]);
 
@@ -150,6 +150,6 @@
         else if (IsAuthenticated && UserRole == "Admin")
         {
             await ViewModel.LoadAllVideos();
-        } *@
-    }
+        }
+    } *@
 }

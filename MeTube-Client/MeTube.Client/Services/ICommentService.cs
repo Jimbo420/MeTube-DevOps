@@ -1,4 +1,4 @@
 namespace MeTube.Client.Services;
-public class ICommentServicee{
+public interface ICommentServicee{
     
 }

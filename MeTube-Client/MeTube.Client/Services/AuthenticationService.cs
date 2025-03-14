@@ -1,4 +1,5 @@
 namespace MeTube.Client.Services;
-public class AuthenticationService{
+public class AuthenticationService : IAuthenticationService
+{
     
 }

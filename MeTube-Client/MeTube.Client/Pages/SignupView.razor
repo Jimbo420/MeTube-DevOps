@@ -42,13 +42,13 @@
     private string UserRole = string.Empty;
     private string titel = "Sign up";
 
-    protected override async Task OnInitializedAsync()
+    @* protected override async Task OnInitializedAsync()
     {
-        @* Dictionary<string, string> response = await UserService.IsUserAuthenticated();
+        Dictionary<string, string> response = await UserService.IsUserAuthenticated();
         UserRole = response["Role"];
         IsAuthenticated = Convert.ToBoolean(response["IsAuthenticated"]);
 
         if (IsAuthenticated && UserRole == "Admin")
-            titel = "Create User Account"; *@
-    }
+            titel = "Create User Account";
+    } *@
 }

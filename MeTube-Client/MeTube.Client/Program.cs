@@ -42,29 +42,16 @@ builder.Services.AddTransient<UploadVideoViewModel>();
 builder.Services.AddTransient<UserHistoryViewModel>();
 builder.Services.AddTransient<AdminHistoryViewModel>();
 
-builder.Services.AddSingleton<IJSRuntimeWrapper>();
-builder.Services.AddSingleton<JSRuntimeWrapper>();
-builder.Services.AddSingleton<IClientService>();
+builder.Services.AddScoped<IJSRuntimeWrapper, JSRuntimeWrapper>();
+builder.Services.AddScoped<IClientService,ClientService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IVideoService, VideoService>();
+builder.Services.AddScoped<ILikeService, LikeService>();
+builder.Services.AddScoped<IHistoryService, HistoryService>();
+builder.Services.AddScoped<ICommentServicee, CommentService>();
+builder.Services.AddScoped<IAdminHistoryService, AdminHistoryService>();
 
-builder.Services.AddSingleton<IUserService>();
-builder.Services.AddScoped<IVideoService>();
-builder.Services.AddScoped<ILikeService>();
-builder.Services.AddScoped<IHistoryService>();
-builder.Services.AddScoped<ICommentServicee>();
-builder.Services.AddScoped<IAdminHistoryService>();
-
-builder.Services.AddSingleton<ClientService>();
-builder.Services.AddSingleton<VideoService>();
-builder.Services.AddSingleton<LikeService>();
-builder.Services.AddSingleton<HistoryService>();
-builder.Services.AddSingleton<CommentService>();
-builder.Services.AddSingleton<AdminHistoryService>();
-
-
-
-
-builder.Services.AddScoped<IAuthenticationService>();
-builder.Services.AddScoped<AuthenticationService>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddAutoMapper(typeof(User));
 builder.Services.AddAutoMapper(typeof(Video));

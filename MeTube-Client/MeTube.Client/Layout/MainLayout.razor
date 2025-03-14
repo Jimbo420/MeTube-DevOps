@@ -25,12 +25,12 @@
     private string username = string.Empty;
     bool IsAuthenticated = false;
 
-    protected override async Task OnInitializedAsync()
+    @* protected override async Task OnInitializedAsync()
     {
-        @* username = await UserService.GetLogedInUserName();
+        username = await UserService.GetLogedInUserName();
         if (!string.IsNullOrEmpty(username))
             IsAuthenticated = true;
         else
-            IsAuthenticated = false; *@
-    }
+            IsAuthenticated = false;
+    } *@
 }

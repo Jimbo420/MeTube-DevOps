@@ -1,4 +1,5 @@
 namespace MeTube.Client.Services;
-public class AdminHistoryService{
+public class AdminHistoryService : IAdminHistoryService
+{
     
 }

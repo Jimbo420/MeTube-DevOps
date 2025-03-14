@@ -1,4 +1,4 @@
 namespace MeTube.Client.Services;
-public class ILikeService{
+public interface ILikeService{
     
 }

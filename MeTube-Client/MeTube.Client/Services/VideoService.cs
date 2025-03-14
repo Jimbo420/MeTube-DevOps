@@ -1,4 +1,5 @@
 namespace MeTube.Client.Services;
-public class VideoService{
+public class VideoService : IVideoService
+{
     
 }
