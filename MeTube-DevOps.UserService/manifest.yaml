@@ -88,12 +88,11 @@ metadata:
 spec:
   selector:
     app: metube-devops-userservice
-  type: NodePort 
+  type: LoadBalancer 
   ports:
     - protocol: TCP
       port: 5000
       targetPort: 80
-      nodePort: 30080
 ---
 # 🟢 Service för databasen
 apiVersion: v1
