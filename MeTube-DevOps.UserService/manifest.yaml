@@ -1,43 +1,178 @@
+---
+# ConfigMap for environment variables
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metube-config
+data:
+  DB_HOST: "metube-user-db"
+  DB_PORT: "1433"
+  DB_NAME: "MeTubeUserDb"
+  DB_USER: "sa"
+  APP_PORT: "5000"
+
+---
+# Secret for sensitive data
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metube-secrets
+type: Opaque
+data:
+  # Base64 encoded "YourSecretPass123"
+  DB_PASSWORD: WW91clNlY3JldFBhc3MxMjM=
+
+---
+# PersistentVolumeClaim for database storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metube-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# Database Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metube-devops.userservice
+  name: metube-user-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: metube-devops.userservice
+      app: metube-user-db
   template:
     metadata:
       labels:
-        app: metube-devops.userservice
+        app: metube-user-db
     spec:
       containers:
-        - name: metube-devops.userservice
-          image: metube-devops.userservice:1
-          imagePullPolicy: Never
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 250m
-              memory: 256Mi
-          env:
-            - name: metube-devops.userservice_PORT
-              value: "80"
-          ports:
-            - containerPort: 80
+      - name: metube-user-db
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+        - containerPort: 1433
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: metube-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: mssql-data
+          mountPath: /var/opt/mssql
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - sqlcmd -S localhost -U sa -P "$(SA_PASSWORD)" -Q "SELECT 1" -b
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: mssql-data
+        persistentVolumeClaim:
+          claimName: metube-db-pvc
+
 ---
+# Database Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: metube-devops.userservice
+  name: metube-user-db
 spec:
   selector:
-    app: metube-devops.userservice
-  type: LoadBalancer # use ClusterIP if external communication isn't necessary
+    app: metube-user-db
   ports:
-    - protocol: TCP
-      port: 5000
-      targetPort: 80
+  - port: 1433
+    targetPort: 1433
+  type: ClusterIP
+
+---
+# UserService Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metube-user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metube-user
+  template:
+    metadata:
+      labels:
+        app: metube-user
+    spec:
+      containers:
+      - name: metube-user
+        image: metube-devopsuserservice-metube-user:latest # Update with your registry/image
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: metube-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: metube-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: metube-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: metube-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: metube-secrets
+              key: DB_PASSWORD
+        - name: DB_CONNECTION_STRING
+          value: "Server=$(DB_HOST),$(DB_PORT);Database=$(DB_NAME);User Id=$(DB_USER);Password=$(DB_PASSWORD);TrustServerCertificate=True"
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+        readinessProbe:
+          httpGet:
+            path: /api/User/manageUsers
+            port: 5000
+          initialDelaySeconds: 20
+          periodSeconds: 5
+      volumes:
+      - name: app-data
+        emptyDir: {}
+
+---
+# UserService Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-user
+spec:
+  selector:
+    app: metube-user
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: LoadBalancer  # This exposes the service externally
