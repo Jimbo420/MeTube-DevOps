@@ -32,7 +32,7 @@ services:
   gateway:
     image: metube-gateway
     build:
-      context: ../MeTube-GateWay
+      context: .
       dockerfile: Dockerfile-Gateway-dev
     container_name: metube-gateway
     ports:
@@ -51,7 +51,7 @@ services:
   client:
     image: metube-client
     build:
-      context: .
+      context: ../MeTube-Client
       dockerfile: Dockerfile-Client-dev
     container_name: metube-client
     ports:
