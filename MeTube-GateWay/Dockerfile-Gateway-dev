@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
 EXPOSE 80
 COPY ./*.sln ./
-COPY ./MeTube-Gateway/*.csproj ./MeTube-Gateway/
+COPY ./MeTube-GateWay/*.csproj ./MeTube-Gateway/
 # COPY ./Flixtube.Gateway.UnitTests/*.csproj ./Flixtube.Gateway.UnitTests/
 # COPY ./Flixtube.Gateway.IntegrationTests/*.csproj ./Flixtube.Gateway.IntegrationTests/
 RUN ["dotnet","restore"]
