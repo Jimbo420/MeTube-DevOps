@@ -6,7 +6,6 @@ Accept: application/json
 ###
 POST {{MeTube_DevOps_UserService_HostAddress}}/api/User/signup
 Content-Type: application/json
-
 {
   "username": "testuser2",
   "password": "password1",
