@@ -1,0 +1,103 @@
+ services:
+ 
+  metube-user:
+    image: metube-user
+    build:
+      context: .
+      dockerfile: dockerfile-development
+    container_name: metube-user
+    ports:
+      - "5000:8080"
+    environment:
+      - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
+    restart: always
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - metube-user-db
+    env_file:
+      - .env
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:24.3.1
+    container_name: cloudbeaver
+    ports:
+      - 8978:8978
+    environment:
+      - CB_USER=admin
+      - CB_PASSWORD=admin
+      - CB_ADMIN_NAME=admin
+      - CB_ADMIN_PASSWORD=admin
+
+  gateway:
+    image: gateway
+    build: 
+      context: ../Flixtube.Gateway
+      dockerfile: Dockerfile-dev
+    container_name: gateway
+    ports:
+     - 4010:80
+    environment:
+      - FLIXTUBE_GATEWAY_PORT=80
+      - FLIXTUBE_METADATA_SCHEME=http
+      - FLIXTUBE_METADATA_HOST=metadata
+      - FLIXTUBE_METADATA_PORT=80
+      - FLIXTUBE_HISTORY_SCHEME=http
+      - FLIXTUBE_HISTORY_HOST=history
+      - FLIXTUBE_HISTORY_PORT=80
+      - FLIXTUBE_VIDEO_STREAMING_SCHEME=http
+      - FLIXTUBE_VIDEO_STREAMING_HOST=video-streaming
+      - FLIXTUBE_VIDEO_STREAMING_PORT=80
+      - FLIXTUBE_VIDEO_UPLOAD_SCHEME=http
+      - FLIXTUBE_VIDEO_UPLOAD_HOST=video-upload
+      - FLIXTUBE_VIDEO_UPLOAD_PORT=80
+      - FLIXTUBE_VIDEO_STORAGE_SCHEME=http
+      - FLIXTUBE_VIDEO_STORAGE_HOST=video-storage
+      - FLIXTUBE_VIDEO_STORAGE_PORT=80
+    depends_on:
+      - metadata
+      - history
+      - video-streaming
+      - video-upload
+      - minio-storage
+    restart: always
+    volumes:
+      - ./:/src
+    # develop:
+    #   watch:
+    #     - action: sync
+    #       path: ./Flixtube.Gateway
+    #       target: /src
+
+  web:
+    image: web
+    build: 
+      context: ./
+      dockerfile: Dockerfile-dev
+    container_name: web
+    ports:
+     - 4000:80
+    environment:
+      - FLIXTUBE_WEB_PORT=80
+      - FLIXTUBE_GATEWAY_SCHEME=http
+      - FLIXTUBE_GATEWAY_HOST=gateway
+      - FLIXTUBE_GATEWAY_PORT=80
+      - FLIXTUBE_PUBLIC_GATEWAY_SCHEME=http
+      - FLIXTUBE_PUBLIC_GATEWAY_HOST=localhost
+      - FLIXTUBE_PUBLIC_GATEWAY_PORT=4010
+    depends_on:
+      - gateway
+    restart: always
+    volumes:
+      - ./:/src
+    # develop:
+    #   watch:
+    #     - action: sync
+    #       path: ./Flixtube.Web
+    #       target: /src
+
+ volumes:
+  sqlserver_data:
+    driver: local
+  minio_data:
+    driver: local
