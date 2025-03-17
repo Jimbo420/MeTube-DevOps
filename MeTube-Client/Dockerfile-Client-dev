@@ -3,16 +3,12 @@ WORKDIR /app
 EXPOSE 80
 COPY ./*.sln ./
 COPY ./MeTube-Client/*.csproj ./MeTube-Client/
-# COPY ./MeTube-Client/*.csproj ./MeTube-Client/
-# COPY ./Flixtube.Web.EndToEndTests/*.csproj ./Flixtube.Web.EndToEndTests/
-# COPY ./Flixtube.Web.EndToEndTests ./Flixtube.Web.EndToEndTests
 
-# WORKDIR /src/MeTube-Client.EndToEndTests
-# RUN ["dotnet","build"]
-# RUN ["dotnet","tool","install","--global","Microsoft.Playwright.CLI"]
-# RUN ["pwsh","bin/Debug/net9.0/playwright.ps1","install-deps"]
-# RUN ["pwsh","bin/Debug/net9.0/playwright.ps1","install"]
+RUN dotnet restore
+
+COPY . .
+RUN dotnet publish -c Release -o out
 
 WORKDIR /app
 RUN ["dotnet","restore"]
-CMD ["dotnet","MeTube-Client"]
+ENTRYPOINT ["dotnet","/app/MeTube.Client.dll"]
