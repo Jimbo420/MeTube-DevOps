@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace MeTube_DevOps.UserService.IntegrationTests
 {
-    [Collection("Sequential")]  // Ensure tests run sequentially
+    [Collection("Sequential")]  // Ensure tests are run in sequence
     public class UserControllerIntegrationTests : IClassFixture<PlaywrightFixture>, IAsyncDisposable
     {
         private readonly IAPIRequestContext _apiContext;
