@@ -23,8 +23,7 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // GET: all users
-    // Adding a comment
-    // another one
+    // GET: api/user/manageUsers
     [HttpGet("manageUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -51,9 +50,6 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // POST: signup
-    // Another one
-    // another one
-    // pls work
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
