@@ -6,4 +6,4 @@ COPY ./MeTube-GateWay/*.csproj ./MeTube-Gateway/
 # COPY ./Flixtube.Gateway.UnitTests/*.csproj ./Flixtube.Gateway.UnitTests/
 # COPY ./Flixtube.Gateway.IntegrationTests/*.csproj ./Flixtube.Gateway.IntegrationTests/
 RUN ["dotnet","restore"]
-CMD ["dotnet","watch","run","--no-launch-profile","--project","Flixtube.Gateway"]
+CMD ["dotnet","watch","run","--no-launch-profile","--project","MeTube.Gateway.dll"]

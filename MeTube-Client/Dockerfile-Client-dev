@@ -1,18 +1,21 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
-EXPOSE 80
+
+# Kopiera och återställ beroenden
 COPY ./*.sln ./
 COPY ./MeTube-Client/*.csproj ./MeTube-Client/
-# COPY ./MeTube-Client/*.csproj ./MeTube-Client/
-# COPY ./Flixtube.Web.EndToEndTests/*.csproj ./Flixtube.Web.EndToEndTests/
-# COPY ./Flixtube.Web.EndToEndTests ./Flixtube.Web.EndToEndTests
+RUN dotnet restore
 
-# WORKDIR /src/MeTube-Client.EndToEndTests
-# RUN ["dotnet","build"]
-# RUN ["dotnet","tool","install","--global","Microsoft.Playwright.CLI"]
-# RUN ["pwsh","bin/Debug/net9.0/playwright.ps1","install-deps"]
-# RUN ["pwsh","bin/Debug/net9.0/playwright.ps1","install"]
+# Kopiera all kod och bygg projektet
+COPY . . 
+RUN dotnet publish -c Release -o /app/out
 
+# Använd en lättviktig runtime-image
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
-RUN ["dotnet","restore"]
-CMD ["dotnet","MeTube-Client"]
+
+# Kopiera utgångsfilerna från build-steget
+COPY --from=build /app/out .
+
+# Ändra ENTRYPOINT till ditt nya DLL-namn
+ENTRYPOINT ["dotnet", "MeTube-Client.dll"]
