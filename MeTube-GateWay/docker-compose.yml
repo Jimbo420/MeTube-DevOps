@@ -32,11 +32,11 @@ services:
   gateway:
     image: metube-gateway
     build:
-      context: ../MeTube-GateWay
+      context: .
       dockerfile: Dockerfile-Gateway-dev
     container_name: metube-gateway
     ports:
-      - "5010:8080"
+      - "4010:80"
     environment:
       - METUBE_GATEWAY_PORT=80
       - METUBE_USERSERVICE_SCHEME=http
@@ -51,11 +51,11 @@ services:
   client:
     image: metube-client
     build:
-      context: .
+      context: ../MeTube-Client
       dockerfile: Dockerfile-Client-dev
     container_name: metube-client
     ports:
-      - "5020:8080"
+      - "4000:80"
     environment:
       - METUBE_WEB_PORT=80
       - METUBE_GATEWAY_SCHEME=http
