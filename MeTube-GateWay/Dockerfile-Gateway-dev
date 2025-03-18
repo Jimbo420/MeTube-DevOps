@@ -1,0 +1,16 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /app
+EXPOSE 80
+COPY ./*.sln ./
+COPY ./MeTube-Gateway/*.csproj ./MeTube-Gateway/
+COPY ./MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the application
+COPY . ./
+
+# Keep the container running with the application
+CMD ["dotnet", "run", "--project", "MeTube-Gateway/MeTube-Gateway.csproj"]

@@ -1,0 +1,72 @@
+services:
+  metube-user-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: metube-user-db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourSecretPass123
+    restart: always
+    volumes:
+      - metube-user-volume:/var/opt/mssql
+
+  metube-user:
+    image: metube-user
+    build:
+      context: ../MeTube-DevOps.UserService
+      dockerfile: Dockerfile-User-dev
+    container_name: metube-user
+    ports:
+      - "5000:8080"
+    environment:
+      - METUBE_USERSERVICE_PORT=8080
+      - METUBE_USERSERVICE_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
+      - METUBE_USERSERVICE_SEED_DATABASE=False
+    restart: always
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - metube-user-db
+
+  gateway:
+    image: metube-gateway
+    build:
+      context: .
+      dockerfile: Dockerfile-Gateway-dev
+    container_name: metube-gateway
+    ports:
+      - "5010:8080"
+    environment:
+      - METUBE_GATEWAY_PORT=8080
+      - METUBE_USERSERVICE_SCHEME=http
+      - METUBE_USERSERVICE_HOST=metube-user
+      - METUBE_USERSERVICE_PORT=8080
+    depends_on:
+      - metube-user
+    restart: always
+    volumes:
+      - ./:/src
+
+  client:
+    image: metube-client
+    build:
+      context: ../MeTube-Client
+      dockerfile: Dockerfile-Client-dev
+    container_name: metube-client
+    ports:
+      - "5020:8080"
+    environment:
+      - METUBE_WEB_PORT=8080
+      - METUBE_GATEWAY_SCHEME=http
+      - METUBE_GATEWAY_HOST=metube-gateway
+      - METUBE_GATEWAY_PORT=80
+    depends_on:
+      - gateway
+    restart: always
+    volumes:
+      - ./:/src
+
+volumes:
+  metube-user-volume:
+    driver: local

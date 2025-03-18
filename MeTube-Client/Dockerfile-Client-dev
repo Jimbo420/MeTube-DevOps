@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /app
+EXPOSE 80
+COPY ./*.sln ./
+COPY ./MeTube-Client/*.csproj ./MeTube-Client/
+
+CMD ["dotnet", "MeTube-Client.dll"]

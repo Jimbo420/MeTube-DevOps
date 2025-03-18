@@ -75,5 +75,21 @@ namespace MeTube_DevOps.UserService.Controllers
 
       return Ok(new { Message = "User signed up successfully" });
     }
+
+    // DELETE: remove user by username
+    [HttpDelete("byUsername/{username}")]
+    public async Task<IActionResult> DeleteUserByUsername(string username)
+    {
+        var user = await _unitOfWork.Users.GetUserByUsernameAsync(username);
+        if (user == null)
+        {
+            return NotFound(new { Message = "User not found" });
+        }
+
+        await _unitOfWork.Users.RemoveAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Ok(new { Message = $"User with username '{username}' has been deleted successfully" });
+    }
   }
 }
