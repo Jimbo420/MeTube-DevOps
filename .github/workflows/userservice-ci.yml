@@ -2,11 +2,11 @@ name: Integrate MeTube-DevOps.UserService
 
 on:
   push:
-    branches: [ 30-gateway-and-client-integration ]
+    branches: [ userservice-backend-microservice ]
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
-    branches: [ 30-gateway-and-client-integration ]
+    branches: [ userservice-backend-microservice ]
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:

@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MeTube.DTO
+namespace MeTube_DevOps.UserService.DTO
 {
-    public class UserDto
+    public class UserIdDto
     {
         public int Id { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
     }
 }

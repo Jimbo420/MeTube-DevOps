@@ -1,19 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MeTube.DTO
+namespace MeTube_DevOps.UserService.DTO
 {
-    public class CreateUserDto
+    public class UpdateUserDto
     {
         [Required]
         [StringLength(20, MinimumLength = 3)]
         public string Username { get; set; }
 
-        [Required]
         [StringLength(20, MinimumLength = 3)]
         public string Password { get; set; }
 
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+        public string Role { get; set; }
     }
 }

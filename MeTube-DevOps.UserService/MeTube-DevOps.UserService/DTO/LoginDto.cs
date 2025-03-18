@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MeTube.DTO
+namespace MeTube_DevOps.UserService.DTO
 {
     public class LoginDto
     {
