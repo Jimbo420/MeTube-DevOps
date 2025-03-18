@@ -41,6 +41,17 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT");
+// Add a root endpoint to show that the gateway is running
+app.MapGet("/", () => "The MeTube Gateway is up and running!");
+
+// Add a more detailed health check endpoint
+app.MapGet("/health", () => new { 
+    Status = "Healthy", 
+    Timestamp = DateTime.UtcNow,
+    Service = "MeTube Gateway"
+});
+
+// Fix: Use the correct configuration key for the port
+int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT", 8080);
 Console.WriteLine($"Microservice online and listening on port {GATEWAY_PORT}.");
 app.Run($"http://0.0.0.0:{GATEWAY_PORT}");
