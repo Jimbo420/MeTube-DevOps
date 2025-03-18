@@ -5,7 +5,12 @@ COPY ./*.sln ./
 COPY ./MeTube-Gateway/*.csproj ./MeTube-Gateway/
 COPY ./MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
 COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
-#RUN ["dotnet","restore"]
-#CMD ["dotnet","watch","run","--no-launch-profile","--project","MeTube-GateWay"]
 
+# Restore dependencies
 RUN dotnet restore
+
+# Copy the rest of the application
+COPY . ./
+
+# Add this line to keep the container running with the application
+CMD ["dotnet", "run", "--project", "MeTube-Gateway/MeTube-Gateway.csproj"]
