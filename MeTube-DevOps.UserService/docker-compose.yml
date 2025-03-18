@@ -43,8 +43,6 @@ services:
       - ./data:/app/data
     depends_on:
       - metube-user-db
-    env_file:
-      - .env
 
 volumes:
   metube-user-volume:

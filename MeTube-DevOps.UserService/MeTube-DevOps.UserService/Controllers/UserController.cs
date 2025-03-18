@@ -77,6 +77,7 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // DELETE: remove user by username
+    // DELETE: api/user/byUsername/{username}
     [HttpDelete("byUsername/{username}")]
     public async Task<IActionResult> DeleteUserByUsername(string username)
     {
