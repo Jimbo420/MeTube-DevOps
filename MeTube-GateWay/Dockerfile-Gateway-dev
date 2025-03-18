@@ -12,5 +12,5 @@ RUN dotnet restore
 # Copy the rest of the application
 COPY . ./
 
-# Add this line to keep the container running with the application
+# Keep the container running with the application
 CMD ["dotnet", "run", "--project", "MeTube-Gateway/MeTube-Gateway.csproj"]
