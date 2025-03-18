@@ -1,21 +1,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
-
+EXPOSE 80
 COPY ./*.sln ./
 COPY ./MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
 COPY ./MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
 COPY ./MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
-# copy the DTO class library project
-
-RUN dotnet restore
+RUN ["dotnet","restore"]
 
 COPY . .
-RUN dotnet publish -c Release -o out
+ENV ASPNETCORE_ENVIRONMENT=Development
 
-FROM mcr.microsoft.com/dotnet/sdk:9.0
-WORKDIR /app
-COPY --from=build /app/out .
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="${PATH}:/root/.dotnet/tools"
-
-ENTRYPOINT ["dotnet", "/app/MeTube-DevOps.UserService.dll"]
+CMD ["dotnet","watch","run","--no-launch-profile","--project","MeTube-DevOps.UserService"]
