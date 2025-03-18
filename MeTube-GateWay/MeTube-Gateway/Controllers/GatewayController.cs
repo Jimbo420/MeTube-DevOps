@@ -34,27 +34,6 @@ public class GatewayController : ControllerBase
         return client;
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsJsonAsync("/api/user/login", loginRequest);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Login failed.");
-
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-            return Ok(loginResponse);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in Login: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -110,40 +89,6 @@ public class GatewayController : ControllerBase
             _logger.LogError($"Exception in Logout: {ex.Message}");
             return StatusCode(500, "Internal server error.");
         }
-    }
-
-    [HttpPost("get-token")]
-    public async Task<IActionResult> GetToken([FromBody] LoginRequestDto loginRequest)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsJsonAsync("/api/user/login", loginRequest);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Login failed.");
-
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-            return Ok(loginResponse?.Token ?? string.Empty);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetToken: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpGet("user/authenticated")]
-    public async Task<IActionResult> IsUserAuthenticated([FromHeader] string token)
-    {
-        if (string.IsNullOrEmpty(token))
-            return Ok(new Dictionary<string, string> { { "IsAuthenticated", "false" }, { "Role", "Customer" } });
-
-        var handler = new JwtSecurityTokenHandler();
-        var jwtToken = handler.ReadJwtToken(token);
-        var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "User";
-
-        return Ok(new Dictionary<string, string> { { "IsAuthenticated", "true" }, { "Role", role } });
     }
 
     [HttpDelete("user/{id}")]
@@ -219,22 +164,6 @@ public class GatewayController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError($"Exception in GetUserById: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpGet("users/details")]
-    public async Task<IActionResult> GetAllUsersDetails()
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var userDetails = await client.GetFromJsonAsync<IEnumerable<UserDetailsDto>>("/api/user/details");
-            return Ok(userDetails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetAllUsersDetails: {ex.Message}");
             return StatusCode(500, "Internal server error.");
         }
     }

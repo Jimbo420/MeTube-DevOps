@@ -2,8 +2,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
 EXPOSE 80
 COPY ./*.sln ./
-COPY ./MeTube-GateWay/*.csproj ./MeTube-Gateway/
-# COPY ./Flixtube.Gateway.UnitTests/*.csproj ./Flixtube.Gateway.UnitTests/
-# COPY ./Flixtube.Gateway.IntegrationTests/*.csproj ./Flixtube.Gateway.IntegrationTests/
-RUN ["dotnet","restore"]
-CMD ["dotnet","watch","run","--no-launch-profile","--project","Flixtube.Gateway"]
+COPY ./MeTube-Gateway/*.csproj ./MeTube-Gateway/
+COPY ./MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
+#RUN ["dotnet","restore"]
+#CMD ["dotnet","watch","run","--no-launch-profile","--project","MeTube-GateWay"]
+
+RUN dotnet restore
