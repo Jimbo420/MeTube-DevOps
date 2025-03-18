@@ -4,9 +4,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-string METADATA_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
-string METADATA_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
-int METADATA_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
+string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
+string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
+int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
 
 builder.Configuration.AddEnvironmentVariables("METUBE_");
 
@@ -22,11 +22,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 // Add HTTP clients for the various microservices to the container.
-builder.Services.AddHttpClient("UserServiceClient", client => { client.BaseAddress = new Uri($"{METADATA_SCHEME}://{METADATA_HOST}:{METADATA_PORT}"); });
-// builder.Services.AddHttpClient("HistoryClient", client => { client.BaseAddress = new Uri($"{HISTORY_SCHEME}://{HISTORY_HOST}:{HISTORY_PORT}"); });
-// builder.Services.AddHttpClient("VideoStreamingClient", client => { client.BaseAddress = new Uri($"{VIDEO_STREAMING_SCHEME}://{VIDEO_STREAMING_HOST}:{VIDEO_STREAMING_PORT}"); });
-// builder.Services.AddHttpClient("VideoUploadClient", client => { client.BaseAddress = new Uri($"{VIDEO_UPLOAD_SCHEME}://{VIDEO_UPLOAD_HOST}:{VIDEO_UPLOAD_PORT}"); });
-// builder.Services.AddHttpClient("VideoStorageClient", client => { client.BaseAddress = new Uri($"{VIDEO_STORAGE_SCHEME}://{VIDEO_STORAGE_HOST}:{VIDEO_STORAGE_PORT}"); });
+builder.Services.AddHttpClient("UserServiceClient", client => { client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}"); });
 
 var app = builder.Build();
 
