@@ -1,0 +1,242 @@
+@namespace MeTube_DevOps.Client.Pages
+@page "/video/{VideoId:int}"
+@using MeTube_DevOps.Client.Models
+@using MeTube_DevOps.Client.ViewModels
+@using MeTube_DevOps.Client.Services
+@inject VideoViewModel ViewModel
+@inject IJSRuntime JSRuntime
+@inject ICommentServicee CommentService
+@inject IUserService UserService
+
+<link href="css/video_view.css" rel="stylesheet" />
+
+<div class="container mt-4">
+    @if (ViewModel.IsLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(ViewModel.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @ViewModel.ErrorMessage
+        </div>
+    }
+    else if (ViewModel.CurrentVideo != null)
+    {
+        <div class="row justify-content-center">
+            <!-- Video Section -->
+            <div class="col-lg-8 col-md-12">
+                <div class="video-container">
+                    <video id="videoPlayer"
+                           @ref="videoElement"
+                           controls
+                           class="video-player"
+                           controlsList="nodownload"
+                           preload="auto"
+                           crossorigin="anonymous"
+                           playsinline
+                           webkit-playsinline>
+                        <source src="@Constants.VideoGetStreamUrl(VideoId)" type="video/mp4"
+                                codecs="avc1.42E01E, mp4a.40.2">
+                        Your browser does not support video playback.
+                    </video>
+
+                    <!-- Title and Metadata -->
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <h4 class="fw-bold mb-0">@ViewModel.CurrentVideo.Title</h4>
+                            <small class="text-muted">Uploaded @ViewModel.CurrentVideo.DateUploaded.ToString("dd MMM yyyy")</small>
+                            <small class="text-muted">By @ViewModel.UploaderUsername</small>
+                        </div>
+                        <div class="like-section">
+                            <button class="@(ViewModel.HasUserLiked ? "btn-primary liked" : "btn-outline-primary")"
+                                    @onclick="async () => await ViewModel.ToggleLikeAsync()">
+                                <i id="like-icon" class="bi bi-hand-thumbs-up-fill"></i>
+                                <span>@ViewModel.LikeCount</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mt-3">
+                        <p class="lead">@ViewModel.CurrentVideo.Description</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="col-lg-4 col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Comments (@ViewModel.Comments.Count)</h5>
+                        <div class="comment-box">
+                            @foreach (var comment in ViewModel.Comments)
+                            {
+                                <div class="comment-item mb-3">
+                                    <div class="d-flex align-items-start">
+                                        <div class="flex-grow-1 ms-3">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>@comment.PosterUsername</strong>
+                                                <small class="text-muted">@comment.DateAdded.ToString("HH:mm dd MMM")</small>
+                                            </div>
+                                            <p class="mb-0">@comment.Content</p>
+                                        </div>
+                                        <div>
+                                            @* Only Admins can edit/delete *@
+                                            @if (ViewModel.UserRole == "Admin")
+                                            {
+                                                <button class="btn btn-warning btn-sm" @onclick="() => ViewModel.StartEditingComment(comment)">Edit</button>
+                                                <button @onclick="() => ViewModel.DeleteCommentWithConfirmation(comment, JSRuntime)">Delete</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(ViewModel.CommentErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @ViewModel.CommentErrorMessage
+                            </div>
+                        }
+
+                        @if (ViewModel.IsAuthenticated)
+                        {
+                            <div class="input-group mt-3">
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="Write a comment..."
+                                       @bind="ViewModel.NewCommentText" />
+                                <button class="btn btn-primary"
+                                        @onclick="ViewModel.PostComment"
+                                        disabled="@(ViewModel.CanPostComment == false)">
+                                    Post
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Log in to post a comment.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (ViewModel.IsEditingComment)
+        {
+            <div class="comment-edit-popup">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           @bind="ViewModel.CommentToEdit.Content"
+                           placeholder="Edit your comment..." />
+                    <button class="btn btn-primary" @onclick="ViewModel.SaveCommentChanges">Save</button>
+                    <button class="btn btn-secondary" @onclick="ViewModel.CancelEdit">Cancel</button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+
+<!-- Log in prompt for unauthorized users -->
+@if (ViewModel.ShowLoginPrompt)
+{
+    <div class="modal-backdrop show"></div>
+    <div class="modal show" style="display:block">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login required</h5>
+                </div>
+                <div class="modal-body">
+                    <p>You have to logged in to be able to like videos</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => ViewModel.ShowLoginPrompt = false">Abort</button>
+                    <button class="btn btn-primary" @onclick="() => ViewModel.RedirectToLoginCommand.Execute(null)">Log in</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int VideoId { get; set; }
+
+    private string _newComment = string.Empty;
+
+    private bool videoLoaded = false;
+
+    private ElementReference videoElement;
+
+    private DotNetObjectReference<VideoView> _dotNetHelper;
+
+    private bool _historyRecorded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ViewModel.LoadVideoAsync(VideoId);
+        await ViewModel.InitializeAsync();
+        await ViewModel.LoadCommentsAsync(VideoId);
+    }
+
+    private async Task OnVideoLoaded()
+    {
+        if (!videoLoaded)
+        {
+            videoLoaded = true;
+            await JSRuntime.InvokeVoidAsync("initializeVideoPlayer", videoElement);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _dotNetHelper = DotNetObjectReference.Create(this);
+                await Task.Delay(100);
+                await JSRuntime.InvokeVoidAsync("initializeVideoPlayer", _dotNetHelper);
+                await JSRuntime.InvokeVoidAsync("eval", "document.head.insertAdjacentHTML('beforeend', '<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css\">')");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error initializing video player: {ex.Message}");
+            }
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleVideoPlay()
+    {
+        try
+        {
+            if (!_historyRecorded && ViewModel.CurrentVideo != null)
+            {
+                await ViewModel.RecordHistoryAsync(ViewModel.CurrentVideo.Id);
+                _historyRecorded = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in HandleVideoPlay: {ex}");
+            throw;
+        }
+    }
+
+
+    public void Dispose()
+    {
+        _dotNetHelper?.Dispose();
+    }
+}
