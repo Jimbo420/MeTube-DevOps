@@ -6,21 +6,21 @@ using MeTube_DevOps.Client.Services;
 using MeTube_DevOps.Client.Pages;
 using MeTube_DevOps.Client.ViewModels;
 using Microsoft.JSInterop;
+using MeTube.Client.Pages;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
-
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5020/") });
+// builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5020/") });
 builder.Services.AddSingleton<LoginView>();
 builder.Services.AddSingleton<ManageUsersView>();
-builder.Services.AddSingleton<VideoView>();
+builder.Services.AddSingleton<Video>();
 builder.Services.AddSingleton<Home>();
 builder.Services.AddSingleton<ManageVideos>();
-// builder.Services.AddSingleton<EditVideo>();
+builder.Services.AddSingleton<EditVideo>();
 builder.Services.AddSingleton<UploadVideo>();
-// builder.Services.AddSingleton<HistoryView>();
+builder.Services.AddSingleton<History>();
 builder.Services.AddSingleton<ManageHistory>();
 
 
@@ -54,4 +54,10 @@ builder.Services.AddAutoMapper(typeof(History));
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddTransient<HttpClient>();
 
+
+// app.UseEndpoints(endpoints =>
+// {
+//     endpoints.MapHealthChecks("/health");
+// });
+// app.MapHealthChecks("/health");
 await builder.Build().RunAsync();

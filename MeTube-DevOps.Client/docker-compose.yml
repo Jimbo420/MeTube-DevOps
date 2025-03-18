@@ -22,7 +22,7 @@ services:
     environment:
       - METUBE_USERSERVICE_PORT=8080
       - METUBE_USERSERVICE_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True
-      - METUBE_USERSERVICE_SEED_DATABASE=False
+      # - METUBE_USERSERVICE_SEED_DATABASE=False
     restart: always
     volumes:
       - ./data:/app/data
@@ -61,8 +61,8 @@ services:
       - METUBE_GATEWAY_SCHEME=http
       - METUBE_GATEWAY_HOST=metube-gateway
       - METUBE_GATEWAY_PORT=8080
-    # depends_on:
-    #   - gateway
+    depends_on:
+      - gateway
     restart: always
     volumes:
       - ./:/src
