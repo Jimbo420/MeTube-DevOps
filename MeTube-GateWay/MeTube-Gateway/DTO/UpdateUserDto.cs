@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace MeTube_DevOps.UserService.DTO
+namespace MeTube_GateWay.DTO
 {
     public class UpdateUserDto
     {

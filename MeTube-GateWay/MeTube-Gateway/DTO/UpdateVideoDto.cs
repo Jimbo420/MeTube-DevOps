@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MeTube.DTO.VideoDTOs
+namespace MeTube_GateWay.DTO
 {
     public class UpdateVideoDto
     {

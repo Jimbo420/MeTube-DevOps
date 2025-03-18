@@ -1,7 +1,7 @@
 // using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace MeTube.DTO.VideoDTOs
+namespace MeTube_GateWay.DTO
 {
     public class UploadVideoDto
     {

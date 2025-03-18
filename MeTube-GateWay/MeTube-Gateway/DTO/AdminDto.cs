@@ -1,4 +1,4 @@
-namespace MeTube.DTO
+namespace MeTube_GateWay.DTO
 {
     public class AdminDto
     {

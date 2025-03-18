@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MeTube.DTO.CommentDTOs
+namespace MeTube_GateWay.DTO
 {
     public class UpdateCommentDto
     {

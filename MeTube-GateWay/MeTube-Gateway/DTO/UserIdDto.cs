@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MeTube_DevOps.UserService.DTO
+namespace MeTube_GateWay.DTO
 {
     public class UserIdDto
     {

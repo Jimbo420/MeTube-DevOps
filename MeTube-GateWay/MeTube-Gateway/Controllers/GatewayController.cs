@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using MeTube.DTO;
+using MeTube_GateWay.DTO;
 using System.Security.Claims;
 namespace MeTube.Gateway.Controllers;
 
