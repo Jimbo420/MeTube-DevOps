@@ -4,11 +4,4 @@ EXPOSE 80
 COPY ./*.sln ./
 COPY ./MeTube-Client/*.csproj ./MeTube-Client/
 
-RUN dotnet restore
-
-COPY . .
-RUN dotnet publish -c Release -o out
-
-WORKDIR /app
-RUN ["dotnet","restore"]
-ENTRYPOINT ["dotnet","/app/MeTube.Client.dll"]
+CMD ["dotnet", "MeTube-Client.dll"]
