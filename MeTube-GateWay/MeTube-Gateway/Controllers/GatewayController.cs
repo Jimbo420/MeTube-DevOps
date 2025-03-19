@@ -20,7 +20,7 @@ public class GatewayController : ControllerBase
     }
 
     // GET: get all users from the microservice UserService
-    [HttpGet("users")]
+    [HttpGet("user")]
     public async Task<IActionResult> GetAllUsers()
     {
         _logger.LogInformation("GetAllUsers() Called");
@@ -30,7 +30,7 @@ public class GatewayController : ControllerBase
     }
 
     // GET: user by id from the microservice UserService
-    [HttpGet("users/{id}")]
+    [HttpGet("user/{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
         _logger.LogInformation("GetUser() Called");
@@ -58,7 +58,7 @@ public class GatewayController : ControllerBase
     }
 
     // DELETE: remove user by username from the microservice UserService
-    [HttpDelete("users/{username}")]
+    [HttpDelete("user/{username}")]
     public async Task<IActionResult> RemoveUser(string username)
     {
         _logger.LogInformation("RemoveUser() Called");
