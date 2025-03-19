@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MeTube-DevOps.Client", "MeT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeTube-DevOps.Client", "MeTube-DevOps.Client\MeTube-DevOps.Client\MeTube-DevOps.Client.csproj", "{0C417487-3C5F-4BFF-A9A5-315F52F3F4C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeTube-DevOps.Client.EndToEndTests", "MeTube-DevOps.Client\MeTube-DevOps.Client.EndToEndTests\MeTube-DevOps.Client.EndToEndTests.csproj", "{00F33623-3DDB-468D-B0AF-B930C1F6286A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,18 @@ Global
 		{0C417487-3C5F-4BFF-A9A5-315F52F3F4C0}.Release|x64.Build.0 = Release|Any CPU
 		{0C417487-3C5F-4BFF-A9A5-315F52F3F4C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{0C417487-3C5F-4BFF-A9A5-315F52F3F4C0}.Release|x86.Build.0 = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|x64.Build.0 = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Debug|x86.Build.0 = Debug|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|x64.ActiveCfg = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|x64.Build.0 = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|x86.ActiveCfg = Release|Any CPU
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,5 +143,6 @@ Global
 		{2B213363-E497-4602-A1D9-8EAD7E1D1218} = {22D4411F-60FC-9DC7-DD1F-B29098174621}
 		{B7E64C40-2B24-4EEE-9446-D8C2F29E796A} = {22D4411F-60FC-9DC7-DD1F-B29098174621}
 		{0C417487-3C5F-4BFF-A9A5-315F52F3F4C0} = {111F5902-1849-DEC4-ED6D-5226B8D363CB}
+		{00F33623-3DDB-468D-B0AF-B930C1F6286A} = {111F5902-1849-DEC4-ED6D-5226B8D363CB}
 	EndGlobalSection
 EndGlobal

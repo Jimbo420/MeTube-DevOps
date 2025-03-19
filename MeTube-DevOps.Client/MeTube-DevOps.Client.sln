@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeTube-DevOps.Client", "MeTube-DevOps.Client\MeTube-DevOps.Client.csproj", "{A6486005-8F5E-49D7-B7CE-F0D43D341E2F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeTube-DevOps.Client.EndToEndTests", "MeTube-DevOps.Client.EndtoEndTests\MeTube-DevOps.Client.EndToEndTests.csproj", "{48309E27-2FAE-422A-9B63-500F68B5CE64}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{A6486005-8F5E-49D7-B7CE-F0D43D341E2F}.Release|x64.Build.0 = Release|Any CPU
 		{A6486005-8F5E-49D7-B7CE-F0D43D341E2F}.Release|x86.ActiveCfg = Release|Any CPU
 		{A6486005-8F5E-49D7-B7CE-F0D43D341E2F}.Release|x86.Build.0 = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|x64.Build.0 = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Debug|x86.Build.0 = Debug|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|x64.ActiveCfg = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|x64.Build.0 = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|x86.ActiveCfg = Release|Any CPU
+		{48309E27-2FAE-422A-9B63-500F68B5CE64}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
