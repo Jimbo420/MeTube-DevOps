@@ -1,0 +1,22 @@
+# First stage: Build the app
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /app
+
+COPY ./*.sln ./
+COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the application
+COPY . ./
+
+# Build and publish the app
+RUN dotnet publish -c Release -o out
+
+# Second stage: Setup Nginx to serve the static files
+FROM nginx:alpine
+WORKDIR /app
+EXPOSE 8080
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/out/wwwroot /usr/share/nginx/html

@@ -21,7 +21,16 @@ namespace MeTube_DevOps.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:5001/") });
+            builder.Services.AddScoped(sp => {
+            var gatewayScheme = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_SCHEME") ?? "http";
+            var gatewayHost = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_HOST") ?? "localhost";
+            var gatewayPort = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_PORT") ?? "5010";
+            
+            var apiBaseUrl = $"{gatewayScheme}://{gatewayHost}:{gatewayPort}";
+            
+            return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
+        });
+
             builder.Services.AddSingleton<LoginView>();
             builder.Services.AddSingleton<ManageUsersView>();
             builder.Services.AddSingleton<VideoView>();
@@ -60,7 +69,6 @@ namespace MeTube_DevOps.Client
             builder.Services.AddAutoMapper(typeof(Video));
             builder.Services.AddAutoMapper(typeof(Like));
             builder.Services.AddAutoMapper(typeof(History));
-            builder.Services.AddAutoMapper(typeof(Program).Assembly);
             builder.Services.AddTransient<HttpClient>();
 
 

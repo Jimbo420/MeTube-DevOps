@@ -1,0 +1,7 @@
+<linker>
+  <assembly fullname="System.Private.CoreLib">
+    <type fullname="System.Enum">
+      <method name="Parse" />
+    </type>
+  </assembly>
+</linker>
