@@ -24,6 +24,18 @@ builder.Services.AddOpenApi();
 // Add HTTP clients for the various microservices to the container.
 builder.Services.AddHttpClient("UserServiceClient", client => { client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}"); });
 
+builder.Services.AddHealthChecks();
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+            });
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -33,6 +45,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
