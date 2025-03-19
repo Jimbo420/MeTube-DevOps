@@ -43,6 +43,23 @@ public class GatewayController : ControllerBase
         return Ok(content);
     }
 
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDto request)
+    {
+        _logger.LogInformation("Login() Called");
+
+        var client = _httpClientFactory.CreateClient("UserServiceClient");
+        var response = await client.PostAsJsonAsync("api/user/login", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return BadRequest(new { Message = "Invalid username or password" });
+        }
+
+        var loginResult = await response.Content.ReadFromJsonAsync<object>();
+        return Ok(loginResult);
+    }
+
     // POST: signup to the microservice UserService
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
