@@ -16,4 +16,6 @@ RUN dotnet restore MeTube-DevOps.Client/MeTube-DevOps.Client.csproj
 COPY ./MeTube-DevOps.Client/MeTube-DevOps.Client/ /app/MeTube-DevOps.Client/
 
 # Bygg och kör
-CMD ["dotnet", "run", "--project", "/app/MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
+# CMD ["dotnet", "run", "--project", "/app/MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
+CMD ["dotnet", "MeTube-DevOps.Client.dll"]
+
