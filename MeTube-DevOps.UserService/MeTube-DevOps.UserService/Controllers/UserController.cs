@@ -27,27 +27,56 @@ namespace MeTube_DevOps.UserService.Controllers
     [HttpGet("manageUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
-        var users = await _unitOfWork.Users.GetAllAsync();
-        if (!users.Any())
-            return NotFound(new { Message = "Users not found" });
+      var users = await _unitOfWork.Users.GetAllAsync();
+      if (!users.Any())
+        return NotFound(new { Message = "Users not found" });
 
-        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+      var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
 
-        return Ok(userDtos);
+      return Ok(userDtos);
     }
 
     // GET: user by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
-        var user = await _unitOfWork.Users.GetUserByIdAsync(id);
-        if (user == null)
-        {
-            return NotFound(new { Message = "User is not found" });
-        }
-        var userDto = _mapper.Map<UserDto>(user);
-        return Ok(userDto);
+      var user = await _unitOfWork.Users.GetUserByIdAsync(id);
+      if (user == null)
+      {
+        return NotFound(new { Message = "User is not found" });
+      }
+      var userDto = _mapper.Map<UserDto>(user);
+      return Ok(userDto);
     }
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDto request)
+    {
+      var user = await _unitOfWork.Users.GetUserByUsernameAsync(request.Username);
+      if (user == null || user.Password != request.Password)
+      {
+        return Unauthorized(new { Message = "Invalid username or password" });
+      }
+
+      return Ok(new { Message = "Login successful", User = user });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDto request)
+    {
+      _logger.LogInformation("UserService: Login() Called for {Username}", request?.Username);
+
+      var user = await _unitOfWork.Users.GetUserByUsernameAsync(request.Username);
+
+      if (user == null || user.Password != request.Password)
+      {
+        _logger.LogWarning("Login failed for {Username}", request?.Username);
+        return Unauthorized(new { Message = "Invalid username or password" });
+      }
+
+      _logger.LogInformation("Login successful for {Username}", request?.Username);
+      return Ok(new { Message = "Login successful", User = user });
+    }
+
 
     // POST: signup
     [HttpPost("signup")]
@@ -80,8 +109,8 @@ namespace MeTube_DevOps.UserService.Controllers
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
     {
-        // Reuse the existing signup logic
-        return await SignUp(request);
+      // Reuse the existing signup logic
+      return await SignUp(request);
     }
 
     // DELETE: remove user by username
@@ -89,16 +118,16 @@ namespace MeTube_DevOps.UserService.Controllers
     [HttpDelete("byUsername/{username}")]
     public async Task<IActionResult> DeleteUserByUsername(string username)
     {
-        var user = await _unitOfWork.Users.GetUserByUsernameAsync(username);
-        if (user == null)
-        {
-            return NotFound(new { Message = "User not found" });
-        }
+      var user = await _unitOfWork.Users.GetUserByUsernameAsync(username);
+      if (user == null)
+      {
+        return NotFound(new { Message = "User not found" });
+      }
 
-        await _unitOfWork.Users.RemoveAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+      await _unitOfWork.Users.RemoveAsync(user);
+      await _unitOfWork.SaveChangesAsync();
 
-        return Ok(new { Message = $"User with username '{username}' has been deleted successfully" });
+      return Ok(new { Message = $"User with username '{username}' has been deleted successfully" });
     }
   }
 }

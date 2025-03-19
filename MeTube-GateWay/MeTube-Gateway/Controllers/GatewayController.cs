@@ -43,51 +43,80 @@ public class GatewayController : ControllerBase
         return Ok(content);
     }
 
+    [HttpPost("user/login")]
+    public async Task<IActionResult> UserLogin([FromBody] LoginDto request)
+    {
+        _logger.LogInformation("UserLogin() Called - forwarding to regular login");
+        // Anropa den vanliga login-metoden
+        return await Login(request);
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
-        _logger.LogInformation("Login() Called");
+        _logger.LogInformation("Login() Called with username: {Username}", request?.Username);
 
-        var client = _httpClientFactory.CreateClient("UserServiceClient");
-        var response = await client.PostAsJsonAsync("api/user/login", request);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return BadRequest(new { Message = "Invalid username or password" });
-        }
+            var client = _httpClientFactory.CreateClient("UserServiceClient");
 
-        var loginResult = await response.Content.ReadFromJsonAsync<object>();
-        return Ok(loginResult);
+            // Log URL we're calling
+            var requestUrl = "api/user/login";
+            _logger.LogInformation("Sending request to: {Url}", requestUrl);
+
+            var response = await client.PostAsJsonAsync(requestUrl, request);
+
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error response: {Error}", error);
+
+                // Return the actual error from the user service
+                return StatusCode((int)response.StatusCode, error);
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<object>();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during login process");
+            return StatusCode(500, "An unexpected error occurred during login");
+        }
     }
+
+
 
     // POST: signup to the microservice UserService
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
         _logger.LogInformation("SignUp() Called with username: {Username}", request?.Username);
-        
+
         try
         {
             var client = _httpClientFactory.CreateClient("UserServiceClient");
-            
+
             // Log the URL we're sending to
             var requestUrl = "api/user";
             _logger.LogInformation("Sending request to: {Url}", requestUrl);
-            
+
             // Add more details to debug what's happening
             var response = await client.PostAsJsonAsync(requestUrl, request);
-            
+
             _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
                 _logger.LogWarning("Error response: {Error}", error);
-                
+
                 // Return the actual error from the user service
                 return StatusCode((int)response.StatusCode, error);
             }
-            
+
             return Ok(new { Message = "User signed up successfully" });
         }
         catch (Exception ex)
