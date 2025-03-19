@@ -4,11 +4,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
-string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
-int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
+// string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
+// string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
+// int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
 
-builder.Configuration.AddEnvironmentVariables("METUBE_");
+// builder.Configuration.AddEnvironmentVariables("METUBE_");
+
+string USERSERVICE_SCHEME = "http"; // Använd alltid http om du inte har https konfigurerat
+string USERSERVICE_HOST = "metube-user"; // Använd container-namnet istället för localhost
+int USERSERVICE_PORT = 8080; // Internporten i containern
+
+builder.Services.AddHttpClient("UserServiceClient", client => {
+    client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}/api/");
+});
+
 
 // Configure logging.
 builder.Logging.ClearProviders();
@@ -37,7 +46,19 @@ builder.Services.AddHealthChecks();
     });
 
 var app = builder.Build();
-
+app.UseCors("AllowAll");
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        context.Response.StatusCode = 200;
+        return;
+    }
+    await next();
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -45,7 +66,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

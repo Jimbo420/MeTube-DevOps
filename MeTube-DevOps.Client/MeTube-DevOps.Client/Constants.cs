@@ -3,7 +3,7 @@
     public static class Constants
     {
         public static string LocalhostUrl = "localhost";
-        public static string Scheme = "https"; // or http
+        public static string Scheme = "http"; // or http
         public static string Port = "5010"; // or 5000
         public static string BaseUrl = $"{Scheme}://{LocalhostUrl}:{Port}/api";
 
