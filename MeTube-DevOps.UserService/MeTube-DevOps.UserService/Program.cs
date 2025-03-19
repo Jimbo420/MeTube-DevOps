@@ -2,7 +2,7 @@ using MeTube_DevOps.UserService.Repositories;
 using MeTube_DevOps.UserService.Profiles;
 using MeTube_DevOps.UserService.Data;
 using Microsoft.EntityFrameworkCore;
-using AutoMapper;
+//using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,7 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
+//builder.Services.AddAutoMapper(typeof(UserProfile).Assembly);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {

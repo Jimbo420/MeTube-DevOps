@@ -21,15 +21,16 @@ namespace MeTube_DevOps.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => {
-            var gatewayScheme = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_SCHEME") ?? "http";
-            var gatewayHost = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_HOST") ?? "localhost";
-            var gatewayPort = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_PORT") ?? "5010";
-            
-            var apiBaseUrl = $"{gatewayScheme}://{gatewayHost}:{gatewayPort}";
-            
-            return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
-        });
+            builder.Services.AddScoped(sp =>
+            {
+                var gatewayScheme = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_SCHEME") ?? "http";
+                var gatewayHost = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_HOST") ?? "localhost";
+                var gatewayPort = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_PORT") ?? "5010";
+
+                var apiBaseUrl = $"{gatewayScheme}://{gatewayHost}:{gatewayPort}";
+
+                return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
+            });
 
             builder.Services.AddSingleton<LoginView>();
             builder.Services.AddSingleton<ManageUsersView>();
@@ -55,7 +56,7 @@ namespace MeTube_DevOps.Client
             builder.Services.AddTransient<AdminHistoryViewModel>();
 
             builder.Services.AddSingleton<IJSRuntimeWrapper, JSRuntimeWrapper>();
-            builder.Services.AddSingleton<IClientService,ClientService>();
+            builder.Services.AddSingleton<IClientService, ClientService>();
             builder.Services.AddSingleton<IUserService, UserService>();
             builder.Services.AddScoped<IVideoService, VideoService>();
             builder.Services.AddScoped<ILikeService, LikeService>();
@@ -65,11 +66,11 @@ namespace MeTube_DevOps.Client
 
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddAuthorizationCore();
-            builder.Services.AddAutoMapper(typeof(User));
-            builder.Services.AddAutoMapper(typeof(Video));
-            builder.Services.AddAutoMapper(typeof(Like));
-            builder.Services.AddAutoMapper(typeof(History));
-            builder.Services.AddTransient<HttpClient>();
+            // builder.Services.AddAutoMapper(typeof(User));
+            //builder.Services.AddAutoMapper(typeof(Video));
+            //builder.Services.AddAutoMapper(typeof(Like));
+            //builder.Services.AddAutoMapper(typeof(History));
+            //builder.Services.AddTransient<HttpClient>();
 
 
             await builder.Build().RunAsync();

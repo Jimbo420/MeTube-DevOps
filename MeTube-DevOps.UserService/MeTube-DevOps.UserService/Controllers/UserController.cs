@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MeTube_DevOps.UserService.Repositories;
 using MeTube_DevOps.UserService.Data;
 using MeTube_DevOps.UserService.Entities;
-using AutoMapper;
+//using AutoMapper;
 using MeTube_DevOps.UserService.DTO;
 
 namespace MeTube_DevOps.UserService.Controllers
@@ -14,12 +14,12 @@ namespace MeTube_DevOps.UserService.Controllers
   public class UserController : ControllerBase
   {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
+    private readonly IMapper? _mapper;
 
     public UserController(IUnitOfWork unitOfWork, IMapper mapper)
     {
       _unitOfWork = unitOfWork;
-      _mapper = mapper;
+      //_mapper = mapper;
     }
 
     // GET: all users
@@ -27,26 +27,26 @@ namespace MeTube_DevOps.UserService.Controllers
     [HttpGet("manageUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
-        var users = await _unitOfWork.Users.GetAllAsync();
-        if (!users.Any())
-            return NotFound(new { Message = "Users not found" });
+      var users = await _unitOfWork.Users.GetAllAsync();
+      if (!users.Any())
+        return NotFound(new { Message = "Users not found" });
 
-        var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+      var userDtos = < IEnumerable < UserDto >> (users);
 
-        return Ok(userDtos);
+      return Ok(userDtos);
     }
 
     // GET: user by id
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(int id)
     {
-        var user = await _unitOfWork.Users.GetUserByIdAsync(id);
-        if (user == null)
-        {
-            return NotFound(new { Message = "User is not found" });
-        }
-        var userDto = _mapper.Map<UserDto>(user);
-        return Ok(userDto);
+      var user = await _unitOfWork.Users.GetUserByIdAsync(id);
+      if (user == null)
+      {
+        return NotFound(new { Message = "User is not found" });
+      }
+      var userDto = < UserDto > (user);
+      return Ok(userDto);
     }
 
     // POST: signup
@@ -68,7 +68,7 @@ namespace MeTube_DevOps.UserService.Controllers
         return BadRequest(new { Message = "Email already exists" });
       }
 
-      var user = _mapper.Map<User>(request);
+      var user = < User > (request);
 
       await _unitOfWork.Users.AddUserAsync(user);
       await _unitOfWork.SaveChangesAsync();
@@ -81,16 +81,16 @@ namespace MeTube_DevOps.UserService.Controllers
     [HttpDelete("byUsername/{username}")]
     public async Task<IActionResult> DeleteUserByUsername(string username)
     {
-        var user = await _unitOfWork.Users.GetUserByUsernameAsync(username);
-        if (user == null)
-        {
-            return NotFound(new { Message = "User not found" });
-        }
+      var user = await _unitOfWork.Users.GetUserByUsernameAsync(username);
+      if (user == null)
+      {
+        return NotFound(new { Message = "User not found" });
+      }
 
-        await _unitOfWork.Users.RemoveAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+      await _unitOfWork.Users.RemoveAsync(user);
+      await _unitOfWork.SaveChangesAsync();
 
-        return Ok(new { Message = $"User with username '{username}' has been deleted successfully" });
+      return Ok(new { Message = $"User with username '{username}' has been deleted successfully" });
     }
   }
 }
