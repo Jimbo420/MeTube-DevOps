@@ -47,14 +47,45 @@ public class GatewayController : ControllerBase
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
-        _logger.LogInformation("SignUp() Called");
-        var client = _httpClientFactory.CreateClient("UserServiceClient");
-        var response = await client.PostAsJsonAsync("api/user/signup", request);
-        if (!response.IsSuccessStatusCode)
+        _logger.LogInformation("SignUp() Called with username: {Username}", request?.Username);
+        
+        try
         {
-            return BadRequest();
+            var client = _httpClientFactory.CreateClient("UserServiceClient");
+            
+            // Log the URL we're sending to
+            var requestUrl = "api/user";
+            _logger.LogInformation("Sending request to: {Url}", requestUrl);
+            
+            // Add more details to debug what's happening
+            var response = await client.PostAsJsonAsync(requestUrl, request);
+            
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error response: {Error}", error);
+                
+                // Return the actual error from the user service
+                return StatusCode((int)response.StatusCode, error);
+            }
+            
+            return Ok(new { Message = "User signed up successfully" });
         }
-        return Ok();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during signup process");
+            return StatusCode(500, "An unexpected error occurred during signup");
+        }
+    }
+
+    [HttpPost("user/signup")]
+    public async Task<IActionResult> UserSignUp([FromBody] CreateUserDto request)
+    {
+        _logger.LogInformation("UserSignUp() Called - forwarding to regular signup");
+        // Just reuse the existing signup method
+        return await SignUp(request);
     }
 
     // DELETE: remove user by username from the microservice UserService

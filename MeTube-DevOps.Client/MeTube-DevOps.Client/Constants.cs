@@ -3,7 +3,7 @@
     public static class Constants
     {
         public static string LocalhostUrl = "localhost";
-        public static string Scheme = "https"; // or http
+        public static string Scheme = "http"; // or http
         public static string Port = "5010"; // or 5000
         public static string BaseUrl = $"{Scheme}://{LocalhostUrl}:{Port}/api";
 
@@ -17,7 +17,7 @@
         public static string DeleteUser = $"{BaseUrl}/user";
         public static string UpdateUser = $"{BaseUrl}/user";
         public static string ChangeRole = $"{BaseUrl}/user/changeRole/{{0}}";
-        public static string CheckUserExistsUrl = $"{BaseUrl}/User/exists";
+        public static string CheckUserExistsUrl = $"{BaseUrl}/user/exists";
         public static string GetLogedInUsername = $"{BaseUrl}/user/logedInUsername";
 
         // Video endpoints

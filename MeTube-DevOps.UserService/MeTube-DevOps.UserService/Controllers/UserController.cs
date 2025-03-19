@@ -76,6 +76,14 @@ namespace MeTube_DevOps.UserService.Controllers
       return Ok(new { Message = "User signed up successfully" });
     }
 
+    // This handles POST requests to the root endpoint of the controller
+    [HttpPost]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
+    {
+        // Reuse the existing signup logic
+        return await SignUp(request);
+    }
+
     // DELETE: remove user by username
     // DELETE: api/user/byUsername/{username}
     [HttpDelete("byUsername/{username}")]

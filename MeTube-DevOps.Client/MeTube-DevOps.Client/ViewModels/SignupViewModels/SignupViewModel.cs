@@ -93,9 +93,9 @@ namespace MeTube_DevOps.Client.ViewModels.SignupViewModels
                 return;
             }
             //If user dont exist
-            var userExist = await CheckIfUserExist();
+            /* var userExist = await CheckIfUserExist();
             if (userExist)
-                return;
+                return; */
             //Creates a new user wiht filled in details
             var newUser = new User
             {
