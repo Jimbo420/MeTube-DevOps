@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: userservice:1
-          imagePullPolicy: Never
+          image: abdriano/userservice:1
+          imagePullPolicy: Always
           resources:
             requests:
               memory: 128Mi

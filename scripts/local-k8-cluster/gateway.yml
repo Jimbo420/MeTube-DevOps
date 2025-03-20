@@ -14,8 +14,8 @@ spec:
     spec:
       containers: 
       - name: gateway
-        image: gateway:1
-        imagePullPolicy: Never
+        image: abdriano/gateway:1
+        imagePullPolicy: Always
         resources:
           requests:
             cpu: 200m       

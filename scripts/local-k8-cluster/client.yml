@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: client
-          image: client:1
-          imagePullPolicy: Never
+          image: abdriano/client:1
+          imagePullPolicy: Always
           resources:
             requests:
               memory: 128Mi
