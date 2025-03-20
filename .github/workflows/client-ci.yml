@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - Pipeline-Integration
+    paths:
+      - MeTube-DevOps.Client/**
   pull_request:
     branches:
       - Pipeline-Integration
+    paths:
+      - MeTube-DevOps.Client/**
   workflow_dispatch:
 
 jobs:
