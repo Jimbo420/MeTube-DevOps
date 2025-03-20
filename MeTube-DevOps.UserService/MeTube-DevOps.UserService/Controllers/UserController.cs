@@ -88,6 +88,7 @@ namespace MeTube_DevOps.UserService.Controllers
     }
 
     // This handles POST requests to the root endpoint of the controller
+    // POST: api/user
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
     {

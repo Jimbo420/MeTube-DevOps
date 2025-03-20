@@ -3,12 +3,12 @@ name: Client CI Pipeline
 on:
   push:
     branches:
-      - Pipeline-Integration
+      - userservice-backend-microservice
     paths:
       - MeTube-DevOps.Client/**
   pull_request:
     branches:
-      - Pipeline-Integration
+      - userservice-backend-microservice
     paths:
       - MeTube-DevOps.Client/**
   workflow_dispatch:
