@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: client
-          image: metube-client
+          image: client:1
           imagePullPolicy: Always
           resources:
             requests:
