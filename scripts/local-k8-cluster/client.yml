@@ -37,7 +37,7 @@ spec:
             - name: METUBE_PUBLIC_GATEWAY_SCHEME
               value: "http"
             - name: METUBE_PUBLIC_GATEWAY_HOST
-              value: "localhost"
+              value: "57.153.7.223"
             - name: METUBE_PUBLIC_GATEWAY_PORT
               value: "5010"
 

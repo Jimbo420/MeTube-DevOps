@@ -1,12 +1,13 @@
+#Github Actions CI/CD pipeline for UserService
 name: Integrate MeTube-DevOps.UserService
 
 on:
   push:
-    branches: [ userservice-backend-microservice ]
+    branches: [userservice-backend-microservice]
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
-    branches: [ userservice-backend-microservice ]
+    branches: [userservice-backend-microservice]
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:
@@ -14,28 +15,28 @@ on:
 jobs:
   integrate:
     runs-on: ubuntu-latest
-    
+
     env:
       ASPNETCORE_ENVIRONMENT: Development
       DB_CONNECTION_STRING: "Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30"
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Verify Docker Installation
         run: |
           echo "Docker version:"
           docker --version
-          
+
           echo "Docker info:"
           docker info
-          
+
           echo "Docker Compose version:"
           docker compose version
-          
+
           echo "Verify Docker is running:"
           docker run --rm hello-world
-      
+
       - name: Update docker-compose.yml for CI
         run: |
           cd MeTube-DevOps.UserService
@@ -65,39 +66,39 @@ jobs:
                 - db
               # No health check - we'll verify manually
           EOF
-          
+
           # Create a CI-specific Dockerfile
           cat > ci.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
           WORKDIR /app
-          
+
           # Copy ALL project files needed for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
           COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
           RUN dotnet restore
-          
+
           # Copy the rest of the source
           COPY . .
-          
+
           # Patch Program.cs to fix health check issue
           RUN sed -i '/app.MapHealthChecks/d' ./MeTube-DevOps.UserService/Program.cs
-          
+
           # Build and publish
           RUN dotnet build MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj -c Release
           RUN dotnet publish MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj -c Release -o /app/publish
-          
+
           # Runtime image
           FROM mcr.microsoft.com/dotnet/aspnet:9.0
           WORKDIR /app
           COPY --from=build /app/publish .
-          
+
           # Install required tools
           RUN apt-get update && \
               apt-get install -y curl && \
               apt-get clean
-          
+
           EXPOSE 5218
           ENTRYPOINT ["dotnet", "MeTube-DevOps.UserService.dll"]
           EOF
@@ -108,19 +109,19 @@ jobs:
           cat > ci.unittest.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
-          
+
           # Copy ALL project files needed for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
           COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
-          
+
           # Restore packages
           RUN dotnet restore
-          
+
           # Copy the rest of the source
           COPY . .
-          
+
           # Run unit tests
           CMD ["dotnet", "test", "MeTube-DevOps.UserService.UnitTests"]
           EOF
@@ -136,7 +137,7 @@ jobs:
           cd MeTube-DevOps.UserService
           docker compose -f docker-compose.ci.yml build
           docker compose -f docker-compose.ci.yml up -d
-          
+
           # Wait for SQL Server to start using log check instead of sqlcmd
           echo "Waiting for SQL Server to initialize..."
           for i in {1..30}; do
@@ -160,7 +161,7 @@ jobs:
               exit 1
             fi
           done
-          
+
           # Wait for UserService to start
           echo "Waiting for UserService to initialize..."
           for i in {1..30}; do
@@ -183,39 +184,39 @@ jobs:
               exit 1
             fi
           done
-      
+
       - name: Apply Migrations
         run: |
           cd MeTube-DevOps.UserService
-          
+
           # Create a migration Dockerfile
           cat > ci.migrations.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
-          
+
           # Copy only the main project files needed for migrations
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService/appsettings*.json ./MeTube-DevOps.UserService/
-          
+
           # Restore only the main project (not the solution)
           RUN dotnet restore MeTube-DevOps.UserService/MeTube-DevOps.UserService.csproj
           RUN dotnet tool install --global dotnet-ef
           ENV PATH="${PATH}:/root/.dotnet/tools"
-          
+
           # Copy the rest of the main project source code
           COPY MeTube-DevOps.UserService/ ./MeTube-DevOps.UserService/
-          
+
           # Set the entry point to run migrations
           ENTRYPOINT ["dotnet", "ef", "database", "update", "--project", "MeTube-DevOps.UserService"]
           EOF
-          
+
           # Build migration image
           docker build -t migration-runner -f ci.migrations.Dockerfile .
-          
+
           # Get the network name from the running containers
           NETWORK_NAME=$(docker compose -f docker-compose.ci.yml ps --format json | grep -o '"Networks":"[^"]*"' | head -n1 | cut -d'"' -f4)
           echo "Using network: $NETWORK_NAME"
-          
+
           # Run migrations in the same network with the connection string
           docker run --rm --network=$NETWORK_NAME \
             -e ConnectionStrings__DefaultConnection="Server=db;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30" \
@@ -227,7 +228,7 @@ jobs:
           cat > ci.integrationtest.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
-          
+
           # Install required dependencies
           RUN apt-get update && \
               apt-get install -y wget gpg curl unzip && \
@@ -236,26 +237,26 @@ jobs:
               npm i -g playwright@latest && \
               npx playwright install-deps && \
               npx playwright install chromium
-          
+
           # Copy ALL project files for restore
           COPY MeTube-DevOps.UserService/*.csproj ./MeTube-DevOps.UserService/
           COPY MeTube-DevOps.UserService.UnitTests/*.csproj ./MeTube-DevOps.UserService.UnitTests/
           COPY MeTube-DevOps.UserService.IntegrTests/*.csproj ./MeTube-DevOps.UserService.IntegrTests/
           COPY MeTube-DevOps.UserService.sln .
           RUN dotnet restore
-          
+
           # Copy the rest of the source
           COPY . .
-          
+
           # Install Playwright
           RUN dotnet tool install --global Microsoft.Playwright.CLI
           ENV PATH="${PATH}:/root/.dotnet/tools"
           RUN playwright install
-          
+
           # Run integration tests
           CMD ["dotnet", "test", "MeTube-DevOps.UserService.IntegrTests"]
           EOF
-          
+
       - name: Run Integration Tests
         run: |
           cd MeTube-DevOps.UserService
@@ -263,17 +264,17 @@ jobs:
           cat > MeTube-DevOps.UserService.IntegrTests/UserControllerTestsModified.cs << EOF
           $(cat MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs | sed 's/http:\/\/localhost:5218/http:\/\/userservice:5218/g')
           EOF
-          
+
           # Replace the original test file
           mv MeTube-DevOps.UserService.IntegrTests/UserControllerTestsModified.cs MeTube-DevOps.UserService.IntegrTests/UserControllerTests.cs
-          
+
           # Build and run integration tests
           docker build -t userservice-integration-test -f ci.integrationtest.Dockerfile .
           # Use the correct network name (docker compose network name format)
           NETWORK_NAME=$(docker compose -f docker-compose.ci.yml ps --format json | grep -o '"Networks":"[^"]*"' | head -n1 | cut -d'"' -f4)
           echo "Using network: $NETWORK_NAME"
           docker run --network=$NETWORK_NAME userservice-integration-test
-        
+
       - name: Cleanup
         if: always()
         run: |
