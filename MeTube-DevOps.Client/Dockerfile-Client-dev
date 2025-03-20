@@ -3,7 +3,8 @@ WORKDIR /app
 EXPOSE 8080
 COPY ./*.sln ./
 COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
-COPY ./MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client.EndToEndTests/
+COPY ./MeTube-DevOps.Client/MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client/MeTube-DevOps.Client.EndToEndTests/
+
 
 # Restore dependencies
 RUN dotnet restore
