@@ -16,19 +16,36 @@ spec:
         - name: userservice
           image: userservice:1
           imagePullPolicy: Never
-          # resources:  RESOURCE LIMIT DOESN'T WORK IN KIND CLUSTER
-          #   requests:
-          #     memory: 128Mi
-          #     cpu: 100m
-          #   limits:
-          #     memory: 256Mi
-          #     cpu: 250m
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m      
           ports:
-            - containerPort: 5000
+            - containerPort: 8080
           env:
             - name: DB_CONNECTION_STRING
               value: Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
-
+          # More lenient health checks with longer timeouts
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080  # FIXED: Changed from 5000 to 8080
+            initialDelaySeconds: 60     # Increased from 30
+            periodSeconds: 30           # Increased from 10
+            timeoutSeconds: 10          # Increased from 5
+            failureThreshold: 5         # Added explicit failure threshold
+          # Optional readiness probe - commented out for initial deployment
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 8080  # FIXED: Changed from 5000 to 8080
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          #   failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -42,6 +59,25 @@ spec:
     - protocol: TCP
       port: 5000
       targetPort: 8080
+
+---
+#ADDTIONAL SERVICE - For interntal Gateway communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-user
+  labels:
+    app: userservice
+    purpose: gateway-communication
+spec:
+  selector:
+    app: userservice
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5000            # Keep external port as 5000
+      targetPort: 8080      # FIXED: Changed from 5000 to 8080
+      name: http
 
 ---
 apiVersion: autoscaling/v2

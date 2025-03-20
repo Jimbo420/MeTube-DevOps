@@ -4,18 +4,38 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-// string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
-// string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
-// int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
+// Make sure the necessary environment variables are available.
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_GATEWAY_PORT"))) {
+    throw new Exception("Please specify the port number for METUBE.Gateway with the environment variable METUBE_GATEWAY_PORT.");
+}
 
-// builder.Configuration.AddEnvironmentVariables("METUBE_");
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME"))) {
+    throw new Exception("Please specify the scheme for METUBE.USERSERVICE with the environment variable METUBE_USERSERVICE_SCHEME.");
+}
 
-string USERSERVICE_SCHEME = "http"; // Använd alltid http om du inte har https konfigurerat
-string USERSERVICE_HOST = "metube-user"; // Använd container-namnet istället för localhost
-int USERSERVICE_PORT = 8080; // Internporten i containern
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST"))) {
+    throw new Exception("Please specify the host for METUBE.USERSERVICE with the environment variable METUBE_USERSERVICE_HOST.");
+}
+
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT"))) {
+    throw new Exception("Please specify the port number for METUBE.USERSERVICE with the environment variable METUBE_USERSERVICE_PORT.");
+}
+
+
+string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
+string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
+int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "8080");
+
+builder.Configuration.AddEnvironmentVariables("METUBE_");
+
+//string USERSERVICE_SCHEME = "http"; // Använd alltid http om du inte har https konfigurerat
+//string USERSERVICE_HOST = "metube-user"; // Använd container-namnet istället för localhost
+//int USERSERVICE_PORT = 8080; // Internporten i containern
 
 builder.Services.AddHttpClient("UserServiceClient", client => {
-    client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}/api/");
+    client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}");
+    // Timeout 
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 
@@ -29,9 +49,6 @@ builder.Logging.AddDebug();
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-// Add HTTP clients for the various microservices to the container.
-builder.Services.AddHttpClient("UserServiceClient", client => { client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}"); });
 
 builder.Services.AddHealthChecks();
 
@@ -66,7 +83,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
@@ -81,7 +97,8 @@ app.MapGet("/health", () => new {
 });
 
 // Fix: Use the correct configuration key for the port
-//int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT", 8080);
-int GATEWAY_PORT = 8080;
+int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT");
+//int GATEWAY_PORT = 8080;
+
 Console.WriteLine($"Microservice online and listening on port {GATEWAY_PORT}.");
 app.Run($"http://0.0.0.0:{GATEWAY_PORT}");
