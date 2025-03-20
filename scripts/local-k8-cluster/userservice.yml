@@ -2,9 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: userservice
-  labels:
-    app: userservice
-
 spec:
   replicas: 1
   selector:
@@ -19,24 +16,18 @@ spec:
         - name: userservice
           image: userservice:1
           imagePullPolicy: Never
-          resources:
-            requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
-              memory: 256Mi
-              cpu: 500m
+          # resources:  RESOURCE LIMIT DOESN'T WORK IN KIND CLUSTER
+          #   requests:
+          #     memory: 128Mi
+          #     cpu: 100m
+          #   limits:
+          #     memory: 256Mi
+          #     cpu: 250m
           ports:
             - containerPort: 5000
           env:
             - name: DB_CONNECTION_STRING
-              value: "Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
-          volumeMounts:
-            - name: data
-              mountPath: /app/data
-      volumes:
-        - name: data
-          emptyDir: {}
+              value: Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
 
 ---
 apiVersion: v1
@@ -46,7 +37,7 @@ metadata:
 spec:
   selector:
     app: userservice
-  type: ClusterIP  
+  type: LoadBalancer  
   ports:
     - protocol: TCP
       port: 5000
