@@ -1,6 +1,4 @@
 # Github Actions CI/CD pipeline for MeTube-GateWay
-
-#Test2
 name: Integrate MeTube-GateWay
 
 on:
@@ -32,13 +30,13 @@ jobs:
         run: |
           echo "Docker version:"
           docker --version
-
+          
           echo "Docker info:"
           docker info
-
+          
           echo "Docker Compose version:"
           docker compose version
-
+          
           echo "Verify Docker is running:"
           docker run --rm hello-world
 
@@ -69,6 +67,7 @@ jobs:
 
           # Copy ALL project files needed for restore
           COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
           COPY MeTube-GateWay.sln . 
           RUN dotnet restore
 
