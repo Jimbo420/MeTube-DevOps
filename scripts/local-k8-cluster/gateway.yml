@@ -29,7 +29,7 @@ spec:
         - name: METUBE_USERSERVICE_SCHEME
           value: "http"
         - name: METUBE_USERSERVICE_HOST
-          value: "metube-user"
+          value: "userservice"
         - name: METUBE_USERSERVICE_PORT
           value: "8080"
         ports:
