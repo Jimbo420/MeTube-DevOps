@@ -48,7 +48,7 @@ spec:
   ports:
     - protocol: TCP
       port: 5010
-      targetPort: 5010
+      targetPort: 8080
 
 ---
 apiVersion: autoscaling/v2
