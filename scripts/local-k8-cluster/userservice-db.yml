@@ -27,7 +27,7 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: MSSQL_SA_PASSWORD
-          value: P@55w0rd
+          value: YourSecretPass123
         ports:
         - containerPort: 1433
 
