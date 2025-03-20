@@ -37,7 +37,7 @@ jobs:
           EXPOSE 8080
           COPY ./*.sln ./
           COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
-          COPY ./MeTube-DevOps.Client/MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client/MeTube-DevOps.Client.EndToEndTests/
+          COPY ./MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client.EndToEndTests/
           RUN dotnet restore
           COPY . ./
           ENV ASPNETCORE_URLS=http://+:8080
@@ -49,8 +49,8 @@ jobs:
 
       - name: Run tests inside a container
         run: |
-          docker run --rm client-ci dotnet test MeTube-DevOps.Client/MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
+          docker run --rm client-ci dotnet test MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
 
       - name: Stop and remove container
         if: always()
-        run: docker stop client-ci
+        run: docker system prune -f
