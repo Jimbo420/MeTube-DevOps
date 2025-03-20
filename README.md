@@ -1,1 +1,21 @@
 # MeTube-DevOps
+
+## Description
+This is our group project for our DevOps course.
+
+It's supposed to be a simple YouTube-inspired web application that demonstrates core video streaming concepts—uploading, searching, and playing videos—while focusing on clean design and user-friendly interactions.
+But we only managed to finish the sign-in, sign-up and log-in features during our short sprints.
+
+Authors: Ali Behrooz, Ronnie, Abdulla Mehdi, Oskar, Sebastian Svensson - Loop Legion
+
+
+## Table of Contents
+- [Documentation](#documentation)
+- [Application Architecture](#application-architecture)
+- [Screenshots](#screenshots)
+- [Sprints](#sprints)
+  - [Sprint 1](#sprint-1)
+  - [Sprint 2](#sprint-2)
+  - [Sprint 3](#sprint-3)
+  - [Sprint 4](#sprint-4)
+
