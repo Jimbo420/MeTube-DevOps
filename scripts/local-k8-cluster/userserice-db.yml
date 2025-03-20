@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userservice-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userservice-db
+  template:
+    metadata:
+      labels:
+        app: userservice-db
+    spec:
+      containers: 
+      - name: userservice-db
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        imagePullPolicy: Always
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   limits:
+        #     cpu: 250m
+        #     memory: 256Mi
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          value: P@55w0rd
+        ports:
+        - containerPort: 1433
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice-db
+spec:
+  selector:
+    app: userservice-db
+  ports:
+    - name: http
+      protocol: TCP
+      port: 1433
+      targetPort: 1433
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-userservice-db
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: userservice-db
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: 
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target: 
+          type: Utilization
+          averageUtilization: 70
+  behvarior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+      scaleUp:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+        selectPolicy: Max
+          
