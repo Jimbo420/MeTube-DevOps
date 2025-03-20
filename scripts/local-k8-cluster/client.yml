@@ -15,7 +15,7 @@ spec:
       containers:
         - name: client
           image: metube-client
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
@@ -81,7 +81,7 @@ spec:
         target: 
           type: Utilization
           averageUtilization: 70
-  behvarior:
+  behavior:
       scaleDown:
         stabilizationWindowSeconds: 300
         policies:

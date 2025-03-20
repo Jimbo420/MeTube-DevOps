@@ -18,6 +18,7 @@ spec:
       containers:
         - name: userservice
           image: metube-user
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
