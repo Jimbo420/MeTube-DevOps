@@ -75,7 +75,7 @@ spec:
         target: 
           type: Utilization
           averageUtilization: 70
-  behvarior:
+  behavior:
       scaleDown:
         stabilizationWindowSeconds: 300
         policies:
