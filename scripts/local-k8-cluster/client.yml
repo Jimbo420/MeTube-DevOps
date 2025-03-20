@@ -4,6 +4,11 @@ metadata:
   name: client
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: client
@@ -14,7 +19,7 @@ spec:
     spec:
       containers:
         - name: client
-          image: abdriano/client:1
+          image: abdriano/client:8
           imagePullPolicy: Always
           resources:
             requests:
@@ -24,7 +29,7 @@ spec:
               memory: 256Mi
               cpu: 500m
           ports:
-            - containerPort: 5020
+            - containerPort: 8080
           env:
             - name: METUBE_CLIENT_PORT
               value: "8080"
@@ -60,12 +65,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hpa-gateway
+  name: hpa-client
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: gateway
+    name: client
   minReplicas: 1
   maxReplicas: 5
   metrics:

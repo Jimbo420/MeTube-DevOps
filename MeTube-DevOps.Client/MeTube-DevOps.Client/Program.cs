@@ -21,15 +21,30 @@ namespace MeTube_DevOps.Client
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => {
+            // Add after builder initialization
+            // if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_CLIENT_PORT"))) {
+            //     throw new Exception("Please specify the port number for METUBE.Client with the environment variable METUBE_CLIENT_PORT.");
+            // }
+
+            var clientPort = Environment.GetEnvironmentVariable("METUBE_CLIENT_PORT") ?? "8080";  
+
+
+            builder.Services.AddScoped(sp => { 
             var gatewayScheme = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_SCHEME") ?? "http";
-            var gatewayHost = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_HOST") ?? "localhost";
+            // var gatewayHost = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_HOST") ?? "localhost";
+            // if(gatewayHost == "localhost")
+            // {
+            //     gatewayHost = "57.153.7.223";
+            // }
+
+            var gatewayHost = "57.153.7.223";
+            
             var gatewayPort = Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_PORT") ?? "5010";
             
             var apiBaseUrl = $"{gatewayScheme}://{gatewayHost}:{gatewayPort}";
             
-            return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
-        });
+                return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
+            });
 
             builder.Services.AddSingleton<LoginView>();
             builder.Services.AddSingleton<ManageUsersView>();
