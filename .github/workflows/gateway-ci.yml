@@ -81,8 +81,9 @@ jobs:
           WORKDIR /app
 
           # Copy ALL project files needed for restore
-          COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
-          COPY MeTube-Gateway.UnitTests/*.csproj ./MeTube-Gateway.UnitTests/
+          COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+          COPY MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
           COPY MeTube.GateWay.sln . 
           RUN dotnet restore
 
@@ -90,8 +91,8 @@ jobs:
           COPY . .
 
           # Build and publish
-          RUN dotnet build MeTube-Gateway/MeTube-Gateway.csproj -c Release
-          RUN dotnet publish MeTube-Gateway/MeTube-Gateway.csproj -c Release -o /app/publish
+          RUN dotnet build MeTube-GateWay/MeTube-Gateway.csproj -c Release
+          RUN dotnet publish MeTube-GateWay/MeTube-Gateway.csproj -c Release -o /app/publish
 
           # Runtime image
           FROM mcr.microsoft.com/dotnet/aspnet:9.0
@@ -110,8 +111,8 @@ jobs:
           WORKDIR /app
 
           # Copy ALL project files needed for restore
-          COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
-          COPY MeTube-Gateway.UnitTests/*.csproj ./MeTube-Gateway.UnitTests/
+          COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
           COPY MeTube.GateWay.sln .
 
           # Restore packages
@@ -121,7 +122,7 @@ jobs:
           COPY . .
 
           # Run unit tests
-          CMD ["dotnet", "test", "MeTube-Gateway.UnitTests"]
+          CMD ["dotnet", "test", "MeTube-GateWay.UnitTests"]
           EOF
 
       - name: Run Unit Tests via Docker
