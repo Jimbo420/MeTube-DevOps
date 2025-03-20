@@ -1,0 +1,52 @@
+name: Client CI Pipeline
+
+on:
+  push:
+    branches:
+      - Pipeline-Integration
+  pull_request:
+    branches:
+      - Pipeline-Integration
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Verify Docker Installation
+        run: docker --version
+
+      - name: Create Client CI Dockerfile
+        run: |
+          cat <<EOF > ci.client.Dockerfile
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+          EXPOSE 8080
+          COPY ./*.sln ./
+          COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
+          COPY ./MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client.EndToEndTests/
+          RUN dotnet restore
+          COPY . ./
+          ENV ASPNETCORE_URLS=http://+:8080
+          CMD ["dotnet", "run", "--project", "MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
+          EOF
+
+      - name: Build Docker image
+        run: docker build -t client-ci -f ci.client.Dockerfile .
+
+      - name: Run tests inside a container
+        run: |
+          docker run --rm client-ci dotnet test MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
+
+      - name: Stop and remove container
+        if: always()
+        run: docker stop client-ci
