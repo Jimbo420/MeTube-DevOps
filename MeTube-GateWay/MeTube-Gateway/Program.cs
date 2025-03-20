@@ -1,86 +1,99 @@
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.Http.Features;
+using System;
+using System.Collections;
+using System.Globalization;
+using System.Net;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Disable accessing configuration for GATEWAY_PORT which causes the exception
+builder.Configuration["GATEWAY_PORT"] = null;
 
-// string USERSERVICE_SCHEME = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_SCHEME") ?? string.Empty;
-// string USERSERVICE_HOST = Environment.GetEnvironmentVariable("METUBE_USERSERVICE_HOST") ?? string.Empty;
-// int USERSERVICE_PORT = int.Parse(Environment.GetEnvironmentVariable("METUBE_USERSERVICE_PORT") ?? "80");
+// Configure microservice connections
+string USERSERVICE_SCHEME = "http";
+string USERSERVICE_HOST = "metube-user";
+int USERSERVICE_PORT = 5000; // Match UserService port
 
-// builder.Configuration.AddEnvironmentVariables("METUBE_");
-
-string USERSERVICE_SCHEME = "http"; // Använd alltid http om du inte har https konfigurerat
-string USERSERVICE_HOST = "metube-user"; // Använd container-namnet istället för localhost
-int USERSERVICE_PORT = 8080; // Internporten i containern
-
-builder.Services.AddHttpClient("UserServiceClient", client => {
-    client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}/api/");
-});
-
-
-// Configure logging.
+// Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Add services to the container.
-
+// Add core services
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-
-// Add HTTP clients for the various microservices to the container.
-builder.Services.AddHttpClient("UserServiceClient", client => { client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}"); });
-
 builder.Services.AddHealthChecks();
 
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowAll", policy =>
-            {
-                policy.AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-            });
-    });
+// Configure HttpClient for UserService
+builder.Services.AddHttpClient("UserServiceClient", client => {
+    client.BaseAddress = new Uri($"{USERSERVICE_SCHEME}://{USERSERVICE_HOST}:{USERSERVICE_PORT}/");
+    // Add timeout to prevent long-hanging requests
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
+// Configure CORS policy
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAll", policy => {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// Build the application
 var app = builder.Build();
+
+// Configure middleware pipeline
 app.UseCors("AllowAll");
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+// Handle OPTIONS requests for CORS preflight
+app.Use(async (context, next) => {
+    if (context.Request.Method == "OPTIONS") {
+        // Use indexer to set headers (fixes ASP0019 warning)
+        context.Response.Headers["Access-Control-Allow-Origin"] = "*";
+        context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
+        context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
         context.Response.StatusCode = 200;
         return;
     }
     await next();
 });
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapScalarApiReference(); // scalar/v1
+
+// Configure development-specific middleware
+if (app.Environment.IsDevelopment()) {
+    app.MapScalarApiReference();
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// Add a root endpoint to show that the gateway is running
+// Add diagnostic endpoints
 app.MapGet("/", () => "The MeTube Gateway is up and running!");
-
-// Add a more detailed health check endpoint
 app.MapGet("/health", () => new { 
     Status = "Healthy", 
     Timestamp = DateTime.UtcNow,
     Service = "MeTube Gateway"
 });
 
-// Fix: Use the correct configuration key for the port
-int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT", 8080);
-Console.WriteLine($"Microservice online and listening on port {GATEWAY_PORT}.");
+// SIMPLIFIED PORT HANDLING - avoids using Configuration which causes the error
+int GATEWAY_PORT = 8080; // Default port
+
+try {
+    // ONLY use Environment.GetEnvironmentVariable - avoid app.Configuration
+    var metubePart = Environment.GetEnvironmentVariable("METUBE_GATEWAY_PORT");
+    Console.WriteLine($"METUBE_GATEWAY_PORT value: {metubePart ?? "not set"}");
+    
+    if (!string.IsNullOrEmpty(metubePart) && int.TryParse(metubePart, out int parsedPort)) {
+        GATEWAY_PORT = parsedPort;
+        Console.WriteLine($"Using METUBE_GATEWAY_PORT: {GATEWAY_PORT}");
+    }
+}
+catch (Exception ex) {
+    Console.WriteLine($"Error parsing port configuration: {ex.Message}");
+    Console.WriteLine($"Using default port: {GATEWAY_PORT}");
+}
+
+Console.WriteLine($"Gateway service starting on port {GATEWAY_PORT}");
 app.Run($"http://0.0.0.0:{GATEWAY_PORT}");
