@@ -42,10 +42,10 @@ jobs:
           # Kopiera projektfiler och lösning
           COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
           COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
-          COPY MeTube-GateWay.sln .
+          COPY MeTube.GateWay.sln .
 
           # Restore dependencies
-          RUN dotnet restore MeTube-GateWay.sln
+          RUN dotnet restore MeTube.GateWay.sln
 
           # Kopiera resten av koden
           COPY . .
