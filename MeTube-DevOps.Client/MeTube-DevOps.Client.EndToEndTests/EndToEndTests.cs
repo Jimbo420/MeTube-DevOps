@@ -1,11 +1,13 @@
 using Xunit;
-namespace MeTube_DevOps.Client.EndToEndTests;
-//Test8
-public class EndToEndTests
+namespace MeTube_DevOps.Client.EndToEndTests
 {
-    [Fact]
-    public void Test()
+    public class EndToEndTests
     {
-        Assert.True(true);
+        [Fact]
+        public void Test()
+        {
+            Assert.True(true);
+        }
     }
 }
+//Test8
