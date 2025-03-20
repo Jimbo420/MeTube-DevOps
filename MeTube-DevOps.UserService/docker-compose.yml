@@ -2,6 +2,7 @@ services:
   metube-user-db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: metube-user-db
+    hostname: metube-user-db
     ports:
       - "1433:1433"
     environment:
@@ -28,10 +29,10 @@ services:
       - metube-user-volume:/var/opt/mssql
 
   metube-user:
-    image: metube-user
+    image: userservice:1
     build:
       context: .
-      dockerfile: dockerfile-development
+      dockerfile: Dockerfile-User-dev
     container_name: metube-user
     ports:
       - "5000:8080"
@@ -42,8 +43,6 @@ services:
       - ./data:/app/data
     depends_on:
       - metube-user-db
-    env_file:
-      - .env
 
 volumes:
   metube-user-volume:

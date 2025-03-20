@@ -1,0 +1,90 @@
+services:
+  metube-user-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: metube-user-db
+    hostname: metube-user-db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourSecretPass123
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sqlcmd",
+          "-S",
+          "localhost",
+          "-U",
+          "sa",
+          "-P",
+          "YourSecretPass123",
+          "-Q",
+          "SELECT 1",
+        ]
+      interval: 10s
+      retries: 5
+    restart: always
+    volumes:
+      - metube-user-volume:/var/opt/mssql
+
+  metube-user:
+    image: userservice:1
+    build:
+      context: ../MeTube-DevOps.UserService
+      dockerfile: Dockerfile-User-dev
+    container_name: metube-user
+    ports:
+      - "5000:8080"
+    environment:
+      - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
+    restart: always
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - metube-user-db
+
+  gateway:
+    image: gateway:1
+    build:
+      context: ../MeTube-GateWay
+      dockerfile: Dockerfile-Gateway-dev
+    container_name: metube-gateway
+    ports:
+      - "5010:8080"
+    environment:
+      - METUBE_GATEWAY_PORT=8080
+      - METUBE_USERSERVICE_SCHEME=http
+      - METUBE_USERSERVICE_HOST=metube-user
+      - METUBE_USERSERVICE_PORT=8080
+    depends_on:
+      - metube-user
+    restart: always
+    volumes:
+      - ./:/src
+
+  client:
+    image: client:1
+    build:
+      context: .
+      dockerfile: Dockerfile-Client-prod
+    container_name: metube-client
+    ports:
+      - "5020:8080"
+    environment:
+      - METUBE_CLIENT_PORT=8080
+      - METUBE_GATEWAY_SCHEME=http
+      - METUBE_GATEWAY_HOST=metube-gateway
+      - METUBE_GATEWAY_PORT=8080
+      - METUBE_PUBLIC_GATEWAY_SCHEME=http
+      - METUBE_PUBLIC_GATEWAY_HOST=localhost
+      - METUBE_PUBLIC_GATEWAY_PORT=5010
+    depends_on:
+      - gateway
+    restart: always
+    volumes:
+      - ./:/src
+
+volumes:
+  metube-user-volume:
+    driver: local

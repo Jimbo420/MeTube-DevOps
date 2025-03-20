@@ -1,0 +1,34 @@
+﻿using AutoMapper;
+using MeTube_DevOps.Client.DTO.UserDTOs;
+using MeTube_DevOps.Client.Models;
+
+namespace MeTube.Client.Profiles
+{
+    public class UserProfile : Profile
+    {
+        public UserProfile()
+        {
+            // Map Entity to DTO
+            CreateMap<CreateUserDto, User>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password));
+
+
+            // Map DTO to Entity
+            CreateMap<User, CreateUserDto>()
+                .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password));
+
+            CreateMap<UserDto, User>()
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Username))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.Password, opt => opt.Ignore());
+
+            CreateMap<User, LoginDto>().ReverseMap();
+
+            CreateMap<UserDetails, UserDetailsDto>().ReverseMap();
+        }
+    }
+}

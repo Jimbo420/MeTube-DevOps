@@ -1,14 +1,10 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
-using MeTube.DTO;
-using System.IdentityModel.Tokens.Jwt;
+using MeTube_GateWay.DTO;
 using System.Security.Claims;
-
 namespace MeTube.Gateway.Controllers;
 
 [ApiController]
-[Route("gateway")]
+[Route("api")]
 public class GatewayController : ControllerBase
 {
     private readonly ILogger<GatewayController> _logger;
@@ -23,239 +19,133 @@ public class GatewayController : ControllerBase
         _logger.LogInformation("GatewayController() Called");
     }
 
-    private HttpClient CreateUserServiceClient()
+    // GET: get all users from the microservice UserService
+    [HttpGet("user")]
+    public async Task<IActionResult> GetAllUsers()
     {
-        var client = _httpClientFactory.CreateClient();
-        var userServiceUrl = _config["Services:UserServiceUrl"];
-        
-        if (string.IsNullOrEmpty(userServiceUrl))
-        {
-            _logger.LogError("UserServiceUrl is not configured.");
-            throw new Exception("UserServiceUrl is not configured.");
-        }
+        _logger.LogInformation("GetAllUsers() Called");
+        var client = _httpClientFactory.CreateClient("UserServiceClient");
+        var content = await client.GetFromJsonAsync<List<UserDto>>("api/user/manageUsers") ?? [];
+        return Ok(content);
+    }
 
-        client.BaseAddress = new Uri(userServiceUrl);
-        return client;
+    // GET: user by id from the microservice UserService
+    [HttpGet("user/{id}")]
+    public async Task<IActionResult> GetUser(int id)
+    {
+        _logger.LogInformation("GetUser() Called");
+        var client = _httpClientFactory.CreateClient("UserServiceClient");
+        var content = await client.GetFromJsonAsync<UserDto>($"api/user/{id}");
+        if (content == null)
+        {
+            return NotFound();
+        }
+        return Ok(content);
+    }
+
+    [HttpPost("user/login")]
+    public async Task<IActionResult> UserLogin([FromBody] LoginDto request)
+    {
+        _logger.LogInformation("UserLogin() Called - forwarding to regular login");
+        // Anropa den vanliga login-metoden
+        return await Login(request);
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequestDto loginRequest)
+    public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
+        _logger.LogInformation("Login() Called with username: {Username}", request?.Username);
+
         try
         {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsJsonAsync("/api/user/login", loginRequest);
+            var client = _httpClientFactory.CreateClient("UserServiceClient");
+
+            // Log URL we're calling
+            var requestUrl = "api/user/login";
+            _logger.LogInformation("Sending request to: {Url}", requestUrl);
+
+            var response = await client.PostAsJsonAsync(requestUrl, request);
+
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Login failed.");
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error response: {Error}", error);
 
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-            return Ok(loginResponse);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in Login: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
+                // Return the actual error from the user service
+                return StatusCode((int)response.StatusCode, error);
+            }
 
-    [HttpGet("users")]
-    public async Task<IActionResult> GetAllUsers()
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var users = await client.GetFromJsonAsync<IEnumerable<UserDto>>("/api/user");
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetAllUsers: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpGet("user/id-by-email/{email}")]
-    public async Task<IActionResult> GetUserIdByEmail(string email)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.GetAsync($"/api/user/id-by-email/{email}");
-
-            if (!response.IsSuccessStatusCode)
-                return NotFound();
-
-            var userId = await response.Content.ReadFromJsonAsync<int?>();
-            return Ok(userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetUserIdByEmail: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsync("/api/user/logout", null);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Logout failed.");
-
-            return Ok(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in Logout: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpPost("get-token")]
-    public async Task<IActionResult> GetToken([FromBody] LoginRequestDto loginRequest)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsJsonAsync("/api/user/login", loginRequest);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Login failed.");
-
-            var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-            return Ok(loginResponse?.Token ?? string.Empty);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetToken: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpGet("user/authenticated")]
-    public async Task<IActionResult> IsUserAuthenticated([FromHeader] string token)
-    {
-        if (string.IsNullOrEmpty(token))
-            return Ok(new Dictionary<string, string> { { "IsAuthenticated", "false" }, { "Role", "Customer" } });
-
-        var handler = new JwtSecurityTokenHandler();
-        var jwtToken = handler.ReadJwtToken(token);
-        var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "User";
-
-        return Ok(new Dictionary<string, string> { { "IsAuthenticated", "true" }, { "Role", role } });
-    }
-
-    [HttpDelete("user/{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.DeleteAsync($"/api/user/{id}");
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Failed to delete user.");
-
-            return Ok(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in DeleteUser: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpPut("user/{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PutAsJsonAsync($"/api/user/{id}", updateUserDto);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Failed to update user.");
-
-            return Ok(true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in UpdateUser: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
-    }
-
-    [HttpPost("user/exists")]
-    public async Task<IActionResult> DoesUserExist([FromBody] Dictionary<string, string> userData)
-    {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var response = await client.PostAsJsonAsync("/api/user/exists", userData);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "User existence check failed.");
-
-            var result = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
+            var result = await response.Content.ReadFromJsonAsync<object>();
             return Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception in DoesUserExist: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
+            _logger.LogError(ex, "Error during login process");
+            return StatusCode(500, "An unexpected error occurred during login");
         }
     }
 
-    [HttpGet("user/{id}")]
-    public async Task<IActionResult> GetUserById(int id)
+
+
+    // POST: signup to the microservice UserService
+    [HttpPost("signup")]
+    public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
     {
+        _logger.LogInformation("SignUp() Called with username: {Username}", request?.Username);
+
         try
         {
-            var client = CreateUserServiceClient();
-            var user = await client.GetFromJsonAsync<UserDto>($"/api/user/{id}");
-            return Ok(user);
+            var client = _httpClientFactory.CreateClient("UserServiceClient");
+
+            // Log the URL we're sending to
+            var requestUrl = "api/user";
+            _logger.LogInformation("Sending request to: {Url}", requestUrl);
+
+            // Add more details to debug what's happening
+            var response = await client.PostAsJsonAsync(requestUrl, request);
+
+            _logger.LogInformation("Received response with status code: {StatusCode}", response.StatusCode);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Error response: {Error}", error);
+
+                // Return the actual error from the user service
+                return StatusCode((int)response.StatusCode, error);
+            }
+
+            return Ok(new { Message = "User signed up successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception in GetUserById: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
+            _logger.LogError(ex, "Error during signup process");
+            return StatusCode(500, "An unexpected error occurred during signup");
         }
     }
 
-    [HttpGet("users/details")]
-    public async Task<IActionResult> GetAllUsersDetails()
+    [HttpPost("user/signup")]
+    public async Task<IActionResult> UserSignUp([FromBody] CreateUserDto request)
     {
-        try
-        {
-            var client = CreateUserServiceClient();
-            var userDetails = await client.GetFromJsonAsync<IEnumerable<UserDetailsDto>>("/api/user/details");
-            return Ok(userDetails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetAllUsersDetails: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
+        _logger.LogInformation("UserSignUp() Called - forwarding to regular signup");
+        // Just reuse the existing signup method
+        return await SignUp(request);
     }
 
-    [HttpGet("user/logged-in-username")]
-    public async Task<IActionResult> GetLoggedInUserName()
+    // DELETE: remove user by username from the microservice UserService
+    [HttpDelete("user/{username}")]
+    public async Task<IActionResult> RemoveUser(string username)
     {
-        try
+        _logger.LogInformation("RemoveUser() Called");
+        var client = _httpClientFactory.CreateClient("UserServiceClient");
+        var response = await client.DeleteAsync($"api/user/byUsername/{username}");
+        if (!response.IsSuccessStatusCode)
         {
-            var client = CreateUserServiceClient();
-            var username = await client.GetStringAsync("/api/user/logged-in-username");
-            return Ok(username);
+            return BadRequest();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Exception in GetLoggedInUserName: {ex.Message}");
-            return StatusCode(500, "Internal server error.");
-        }
+        return Ok();
     }
+
 }

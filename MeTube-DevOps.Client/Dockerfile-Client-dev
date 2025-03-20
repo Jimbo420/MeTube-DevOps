@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0
+WORKDIR /app
+EXPOSE 8080
+COPY ./*.sln ./
+COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy the rest of the application
+COPY . ./
+
+# Keep the container running with the application
+ENV ASPNETCORE_URLS=http://+:8080
+CMD ["dotnet", "run", "--project", "MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]

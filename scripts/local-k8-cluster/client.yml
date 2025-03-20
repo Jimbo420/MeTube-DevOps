@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client
+          image: abdriano/client:8
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 256Mi
+              cpu: 500m
+          ports:
+            - containerPort: 8080
+          env:
+            - name: METUBE_CLIENT_PORT
+              value: "8080"
+            - name: METUBE_GATEWAY_SCHEME
+              value: "http"
+            - name: METUBE_GATEWAY_HOST
+              value: "metube-gateway"
+            - name: METUBE_GATEWAY_PORT
+              value: "8080"
+            - name: METUBE_PUBLIC_GATEWAY_SCHEME
+              value: "http"
+            - name: METUBE_PUBLIC_GATEWAY_HOST
+              value: "57.153.7.223"
+            - name: METUBE_PUBLIC_GATEWAY_PORT
+              value: "5010"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+spec:
+  selector:
+    app: client
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5020
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-client
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: client
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: 
+          type: Utilization
+          averageUtilization: 50
+    - type: Resource
+      resource:
+        name: memory
+        target: 
+          type: Utilization
+          averageUtilization: 50
+  behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+      scaleUp:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+        selectPolicy: Max
+          

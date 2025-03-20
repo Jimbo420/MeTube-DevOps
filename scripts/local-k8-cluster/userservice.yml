@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userservice
+  template:
+    metadata:
+      labels:
+        app: userservice
+    spec:
+      containers:
+        - name: userservice
+          image: abdriano/userservice:1
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m      
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_CONNECTION_STRING
+              value: Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
+          # More lenient health checks with longer timeouts
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080  # FIXED: Changed from 5000 to 8080
+            initialDelaySeconds: 60     # Increased from 30
+            periodSeconds: 30           # Increased from 10
+            timeoutSeconds: 10          # Increased from 5
+            failureThreshold: 5         # Added explicit failure threshold
+          # Optional readiness probe - commented out for initial deployment
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 8080  # FIXED: Changed from 5000 to 8080
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          #   failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice
+spec:
+  selector:
+    app: userservice
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8080
+
+---
+#ADDTIONAL SERVICE - For interntal Gateway communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-user
+  labels:
+    app: userservice
+    purpose: gateway-communication
+spec:
+  selector:
+    app: userservice
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5000            # Keep external port as 5000
+      targetPort: 8080      # FIXED: Changed from 5000 to 8080
+      name: http
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-userservice
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: userservice
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: 
+          type: Utilization
+          averageUtilization: 50
+    - type: Resource
+      resource:
+        name: memory
+        target: 
+          type: Utilization
+          averageUtilization: 50
+  behavior:
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+      scaleUp:
+        stabilizationWindowSeconds: 300
+        policies:
+          - type: Pods
+            value: 5
+            periodSeconds: 300
+        selectPolicy: Max
+          
