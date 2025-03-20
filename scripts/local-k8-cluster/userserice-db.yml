@@ -24,10 +24,8 @@ spec:
         #     cpu: 250m
         #     memory: 256Mi
         env:
-        - name: ACCEPT_EULA
-          value: "Y"
-        - name: MSSQL_SA_PASSWORD
-          value: P@55w0rd
+        - name: DB_CONNECTION_STRING
+          value: "Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
         ports:
         - containerPort: 1433
 
