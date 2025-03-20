@@ -25,16 +25,16 @@ spec:
               memory: 256Mi
           env:
             - name: METUBE_GATEWAY_PORT
-              value: "8080"
+              value: "5010"
             - name: METUBE_USERSERVICE_SCHEME
               value: "http"
             - name: METUBE_USERSERVICE_HOST
               value: "userservice"
             - name: METUBE_USERSERVICE_PORT
-              value: "8080"
+              value: "5020"
 
           ports:
-            - containerPort: 8080
+            - containerPort: 5010
 ---
 apiVersion: v1
 kind: Service
@@ -48,7 +48,7 @@ spec:
   ports:
     - protocol: TCP
       port: 5010
-      targetPort: 8080
+      targetPort: 5010
 
 ---
 apiVersion: autoscaling/v2

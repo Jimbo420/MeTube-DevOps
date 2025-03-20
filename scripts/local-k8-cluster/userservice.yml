@@ -27,7 +27,7 @@ spec:
               memory: 512Mi
               cpu: 500m
           ports:
-            - containerPort: 5000
+            - containerPort: 5020
           env:
             - name: DB_CONNECTION_STRING
               value: "Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
@@ -49,8 +49,8 @@ spec:
   type: ClusterIP
   ports:
     - protocol: TCP
-      port: 5000
-      targetPort: 8080
+      port: 5020
+      targetPort: 5020
 
 ---
 apiVersion: autoscaling/v2

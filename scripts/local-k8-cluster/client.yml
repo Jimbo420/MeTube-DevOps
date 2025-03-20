@@ -24,16 +24,16 @@ spec:
               memory: 256Mi
               cpu: 500m
           ports:
-            - containerPort: 5020
+            - containerPort: 5000
           env:
             - name: METUBE_CLIENT_PORT
-              value: "8080"
+              value: "5000"
             - name: METUBE_GATEWAY_SCHEME
               value: "http"
             - name: METUBE_GATEWAY_HOST
               value: "metube-gateway"
             - name: METUBE_GATEWAY_PORT
-              value: "8080"
+              value: "5010"
             - name: METUBE_PUBLIC_GATEWAY_SCHEME
               value: "http"
             - name: METUBE_PUBLIC_GATEWAY_HOST
@@ -52,8 +52,8 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 5020
-      targetPort: 8080
+      port: 5000
+      targetPort: 5000
   type: LoadBalancer
 
 ---
