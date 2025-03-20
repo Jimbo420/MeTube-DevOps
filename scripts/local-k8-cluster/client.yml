@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: client
-          image: metube-client
-          imagePullPolicy: Always
+          image: client:1
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
@@ -53,7 +53,7 @@ spec:
     - name: http
       protocol: TCP
       port: 5020
-      targetPort: 5020
+      targetPort: 8080
   type: LoadBalancer
 
 ---
@@ -72,27 +72,26 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        target: 
+        target:
           type: Utilization
           averageUtilization: 70
     - type: Resource
       resource:
         name: memory
-        target: 
+        target:
           type: Utilization
           averageUtilization: 70
-  behvarior:
-      scaleDown:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-      scaleUp:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-        selectPolicy: Max
-          
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 5
+          periodSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 5
+          periodSeconds: 300
+      selectPolicy: Max

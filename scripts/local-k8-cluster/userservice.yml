@@ -17,13 +17,14 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: metube-user
+          image: userservice:1
+          imagePullPolicy: Never
           resources:
             requests:
-              memory: 128Mi
-              cpu: 100m
-            limits:
               memory: 256Mi
+              cpu: 200m
+            limits:
+              memory: 512Mi
               cpu: 500m
           ports:
             - containerPort: 5000
@@ -36,6 +37,20 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice
+spec:
+  selector:
+    app: userservice
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8080
 
 ---
 apiVersion: autoscaling/v2
@@ -53,27 +68,26 @@ spec:
     - type: Resource
       resource:
         name: cpu
-        target: 
+        target:
           type: Utilization
           averageUtilization: 70
     - type: Resource
       resource:
         name: memory
-        target: 
+        target:
           type: Utilization
           averageUtilization: 70
-  behvarior:
-      scaleDown:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-      scaleUp:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-        selectPolicy: Max
-          
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 5
+          periodSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 5
+          periodSeconds: 300
+      selectPolicy: Max
