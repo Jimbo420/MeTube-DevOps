@@ -60,24 +60,6 @@ namespace MeTube_DevOps.UserService.Controllers
       return Ok(new { Message = "Login successful", User = user });
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto request)
-    {
-      _logger.LogInformation("UserService: Login() Called for {Username}", request?.Username);
-
-      var user = await _unitOfWork.Users.GetUserByUsernameAsync(request.Username);
-
-      if (user == null || user.Password != request.Password)
-      {
-        _logger.LogWarning("Login failed for {Username}", request?.Username);
-        return Unauthorized(new { Message = "Invalid username or password" });
-      }
-
-      _logger.LogInformation("Login successful for {Username}", request?.Username);
-      return Ok(new { Message = "Login successful", User = user });
-    }
-
-
     // POST: signup
     [HttpPost("signup")]
     public async Task<IActionResult> SignUp([FromBody] CreateUserDto request)
@@ -131,3 +113,4 @@ namespace MeTube_DevOps.UserService.Controllers
     }
   }
 }
+
