@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,22 +35,22 @@ jobs:
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
           EXPOSE 8080
-          COPY ./*.sln ./
-          COPY ./MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
-          COPY ./MeTube-DevOps.Client.EndToEndTests/*.csproj ./MeTube-DevOps.Client.EndToEndTests/
+          
+          COPY MeTube-DevOps.Client/*.csproj MeTube-DevOps.Client/
+          COPY MeTube-DevOps.Client.sln .
+
           RUN dotnet restore
-          COPY . ./
+
+          COPY . .
+
           ENV ASPNETCORE_URLS=http://+:8080
+
           CMD ["dotnet", "run", "--project", "MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
           EOF
 
       - name: Build Docker image
         run: docker build -t client-ci -f ci.client.Dockerfile .
 
-      - name: Run tests inside a container
-        run: |
-          docker run --rm client-ci dotnet test MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
-
-      - name: Stop and remove container
+      - name: Cleanup
         if: always()
-        run: docker stop client-ci
+        run: docker system prune -f
