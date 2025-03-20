@@ -1,0 +1,144 @@
+# Github Actions CI/CD pipeline for MeTube-GateWay
+name: Integrate MeTube-GateWay
+
+on:
+  push:
+    branches: [Pipeline-Integration]
+    paths:
+      - MeTube-GateWay/**
+  pull_request:
+    branches: [Pipeline-Integration]
+    paths:
+      - MeTube-GateWay/**
+  workflow_dispatch:
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      METUBE_GATEWAY_PORT: 8080
+      METUBE_USERSERVICE_SCHEME: http
+      METUBE_USERSERVICE_HOST: metube-user
+      METUBE_USERSERVICE_PORT: 8080
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Docker Installation
+        run: |
+          echo "Docker version:"
+          docker --version
+
+          echo "Docker info:"
+          docker info
+
+          echo "Docker Compose version:"
+          docker compose version
+
+          echo "Verify Docker is running:"
+          docker run --rm hello-world
+
+      - name: Update docker-compose.yml for CI
+        run: |
+          cd MeTube-GateWay
+          cat > docker-compose.ci.yml << EOF
+          services:
+            gateway:
+              build:
+                context: .
+                dockerfile: ci.Dockerfile
+              ports:
+                - "5010:8080"
+              environment:
+                - METUBE_GATEWAY_PORT=8080
+                - METUBE_USERSERVICE_SCHEME=http
+                - METUBE_USERSERVICE_HOST=metube-user
+                - METUBE_USERSERVICE_PORT=8080
+              depends_on:
+                - metube-user
+          EOF
+
+          # Create a CI-specific Dockerfile
+          cat > ci.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+          WORKDIR /app
+
+          # Copy ALL project files needed for restore
+          COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
+          COPY MeTube-GateWay.sln . 
+          RUN dotnet restore
+
+          # Copy the rest of the source
+          COPY . .
+
+          # Build and publish
+          RUN dotnet build MeTube-GateWay/MeTube-GateWay.csproj -c Release
+          RUN dotnet publish MeTube-GateWay/MeTube-GateWay.csproj -c Release -o /app/publish
+
+          # Runtime image
+          FROM mcr.microsoft.com/dotnet/aspnet:9.0
+          WORKDIR /app
+          COPY --from=build /app/publish .
+
+          EXPOSE 8080
+          ENTRYPOINT ["dotnet", "MeTube-GateWay.dll"]
+          EOF
+
+      - name: Create Unit Test Dockerfile
+        run: |
+          cd MeTube-GateWay
+          cat > ci.unittest.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+
+          # Copy ALL project files needed for restore
+          COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+          COPY MeTube-GateWay.sln .
+
+          # Restore packages
+          RUN dotnet restore
+
+          # Copy the rest of the source
+          COPY . .
+
+          # Run unit tests
+          CMD ["dotnet", "test", "MeTube-GateWay.UnitTests"]
+          EOF
+
+      - name: Run Unit Tests via Docker
+        run: |
+          cd MeTube-GateWay
+          docker build -t gateway-test -f ci.unittest.Dockerfile .
+          docker run --rm gateway-test
+
+      - name: Build and Start Services
+        run: |
+          cd MeTube-GateWay
+          docker compose -f docker-compose.ci.yml build
+          docker compose -f docker-compose.ci.yml up -d
+
+          # Wait for Gateway to start
+          echo "Waiting for Gateway to initialize..."
+          for i in {1..30}; do
+            if docker compose -f docker-compose.ci.yml exec -T gateway curl -s http://localhost:8080/swagger/index.html > /dev/null; then
+              echo "Gateway is ready!"
+              break
+            fi
+            echo "Attempt $i: Gateway still initializing..."
+            sleep 5
+            
+            if [ $i -eq 30 ]; then
+              echo "Gateway failed to initialize. Checking logs..."
+              docker compose -f docker-compose.ci.yml logs gateway
+              exit 1
+            fi
+          done
+
+      - name: Cleanup
+        if: always()
+        run: |
+          cd MeTube-GateWay
+          docker compose -f docker-compose.ci.yml down -v
