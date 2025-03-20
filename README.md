@@ -1,9 +1,10 @@
 # MeTube-DevOps
 
 ## Description
-This is our group project for our Object Oriented Software Development course.
+This is our group project for our DevOps course.
 
-It's a simple YouTube-inspired web application that demonstrates core video streaming concepts—uploading, searching, and playing videos—while focusing on clean design and user-friendly interactions.
+It's supposed to be a simple YouTube-inspired web application that demonstrates core video streaming concepts—uploading, searching, and playing videos—while focusing on clean design and user-friendly interactions.
+But we only managed to finish the sign-in, sign-up and log-in features during our short sprints.
 
 Authors: Ali Behrooz, Ronnie, Abdulla Mehdi, Oskar, Sebastian Svensson - Loop Legion
 
