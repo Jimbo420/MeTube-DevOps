@@ -51,6 +51,6 @@ jobs:
         run: |
           docker run --rm client-ci dotnet test MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
 
-      - name: Stop and remove container
+      - name: Cleanup Docker
         if: always()
         run: docker system prune -f
