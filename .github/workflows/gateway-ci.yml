@@ -42,6 +42,7 @@ jobs:
           # Kopiera projektfiler och lösning
           COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
           COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+          COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
           COPY MeTube.GateWay.sln .
 
           # Restore dependencies
@@ -52,6 +53,7 @@ jobs:
 
           # Kör enhetstester
           CMD ["dotnet", "test", "MeTube-GateWay.UnitTests"]
+          CMD ["dotnet", "test", "MeTube-GateWay.IntegrationTests"]
           EOF
 
       - name: Run Unit Tests via Docker
