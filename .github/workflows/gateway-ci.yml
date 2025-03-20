@@ -1,61 +1,69 @@
-name: Client CI Pipeline
+name: Integrate MeTube-DevOps.GateWay
 
 on:
   push:
-    branches:
-      - Pipeline-Integration
+    branches: [Pipeline-Integration]
     paths:
-      - MeTube-DevOps.Client/**
+      - MeTube-GateWay/**
   pull_request:
-    branches:
-      - Pipeline-Integration
+    branches: [Pipeline-Integration]
     paths:
-      - MeTube-DevOps.Client/**
+      - MeTube-GateWay/**
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  integrate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up .NET SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 9.0.x
+      - uses: actions/checkout@v4
 
       - name: Verify Docker Installation
-        run: docker --version
-
-      - name: Create Client CI Dockerfile
         run: |
-          cat <<EOF > ci.client.Dockerfile
+          echo "Docker version:"
+          docker --version
+
+          echo "Docker info:"
+          docker info
+
+          echo "Docker Compose version:"
+          docker compose version
+
+          echo "Verify Docker is running:"
+          docker run --rm hello-world
+
+      - name: Create Unit Test Dockerfile
+        run: |
+          cd MeTube-GateWay
+          cat > ci.unittest.Dockerfile << EOF
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
-          EXPOSE 8080
-          
-          COPY MeTube-DevOps.Client/*.csproj MeTube-DevOps.Client/
-          COPY MeTube-DevOps.Client.EndToEndTests/*.csproj MeTube-DevOps.Client.EndToEndTests/
-          COPY MeTube-DevOps.Client.sln .
 
-          RUN dotnet restore
+          # Kopiera projektfiler och lösning
+          COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+          COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
+          COPY MeTube.GateWay.sln .
 
+          # Restore dependencies
+          RUN dotnet restore MeTube.GateWay.sln
+
+          # Kopiera resten av koden
           COPY . .
 
-          ENV ASPNETCORE_URLS=http://+:8080
-
-          CMD ["dotnet", "run", "--project", "MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
+          # Kör enhetstester
+          CMD ["dotnet", "test", "MeTube-GateWay.UnitTests"]
+          CMD ["dotnet", "test", "MeTube-GateWay.IntegrationTests"]
           EOF
 
-      - name: Build Docker image
-        run: docker build -t client-ci -f ci.client.Dockerfile .
-
-      - name: Run tests inside a container
+      - name: Run Unit Tests via Docker
         run: |
-          docker run --rm client-ci dotnet test MeTube-DevOps.Client.EndToEndTests/MeTube-DevOps.Client.EndToEndTests.csproj --logger trx --results-directory /TestResults
+          cd MeTube-GateWay
+          docker build -t gateway-test -f ci.unittest.Dockerfile .
+          docker run --rm gateway-test
 
       - name: Cleanup
         if: always()
-        run: docker system prune -f
+        run: |
+          cd MeTube-GateWay
+          docker system prune -f

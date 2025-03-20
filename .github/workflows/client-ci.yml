@@ -37,7 +37,7 @@ jobs:
           EXPOSE 8080
           
           COPY MeTube-DevOps.Client/*.csproj MeTube-DevOps.Client/
-          COPY MeTube-DevOps.Client.sln .
+          COPY MeTube-DevOps.Client/MeTube-DevOps.Client.sln .
 
           RUN dotnet restore
 
