@@ -45,6 +45,19 @@ jobs:
           cd MeTube-GateWay
           cat > docker-compose.ci.yml << EOF
           services:
+            metube-user:
+              image: userservice:1
+              build:
+                context: ../MeTube-DevOps.UserService
+                dockerfile: Dockerfile-User-dev
+              ports:
+                - "5000:8080"
+              environment:
+                - DB_CONNECTION_STRING=Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
+              restart: always
+              depends_on:
+                - metube-user-db
+
             gateway:
               build:
                 context: .
@@ -68,15 +81,15 @@ jobs:
           # Copy ALL project files needed for restore
           COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
           COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
-          COPY MeTube-GateWay.sln . 
+          COPY MeTube.GateWay.sln . 
           RUN dotnet restore
 
           # Copy the rest of the source
           COPY . .
 
           # Build and publish
-          RUN dotnet build MeTube-GateWay/MeTube-GateWay.csproj -c Release
-          RUN dotnet publish MeTube-GateWay/MeTube-GateWay.csproj -c Release -o /app/publish
+          RUN dotnet build MeTube-GateWay/MeTube-Gateway.csproj -c Release
+          RUN dotnet publish MeTube-GateWay/MeTube-Gateway.csproj -c Release -o /app/publish
 
           # Runtime image
           FROM mcr.microsoft.com/dotnet/aspnet:9.0
@@ -84,7 +97,7 @@ jobs:
           COPY --from=build /app/publish .
 
           EXPOSE 8080
-          ENTRYPOINT ["dotnet", "MeTube-GateWay.dll"]
+          ENTRYPOINT ["dotnet", "MeTube-Gateway.dll"]
           EOF
 
       - name: Create Unit Test Dockerfile
@@ -97,7 +110,7 @@ jobs:
           # Copy ALL project files needed for restore
           COPY MeTube-GateWay/*.csproj ./MeTube-GateWay/
           COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
-          COPY MeTube-GateWay.sln .
+          COPY MeTube.GateWay.sln .
 
           # Restore packages
           RUN dotnet restore
