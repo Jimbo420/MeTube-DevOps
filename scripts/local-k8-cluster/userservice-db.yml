@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: userservice-db
+  name: metube-user-db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: userservice-db
+      app: metube-user-db
   template:
     metadata:
       labels:
-        app: userservice-db
+        app: metube-user-db
     spec:
       containers: 
-      - name: userservice-db
+      - name: metube-user-db
         image: mcr.microsoft.com/mssql/server:2022-latest
         imagePullPolicy: Always
         # resources:
@@ -24,8 +24,10 @@ spec:
         #     cpu: 250m
         #     memory: 256Mi
         env:
-        - name: DB_CONNECTION_STRING
-          value: "Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          value: YourSecretPass123
         ports:
         - containerPort: 1433
 
@@ -33,10 +35,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: userservice-db
+  name: metube-user-db
 spec:
   selector:
-    app: userservice-db
+    app: metube-user-db
   ports:
     - name: http
       protocol: TCP
@@ -48,12 +50,12 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hpa-userservice-db
+  name: hpa-metube-user-db
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: userservice-db
+    name: metube-user-db
   minReplicas: 1
   maxReplicas: 5
   metrics:
@@ -69,7 +71,7 @@ spec:
         target: 
           type: Utilization
           averageUtilization: 70
-  behvarior:
+  behavior:
       scaleDown:
         stabilizationWindowSeconds: 300
         policies:

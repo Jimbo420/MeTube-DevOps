@@ -1,10 +1,15 @@
+# UserService Kubernetes Configuration
+# This file defines all resources needed for the MeTube User Service
+
+# Deployment - Manages the UserService pods
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: userservice
   labels:
     app: userservice
-
+    tier: backend
+    service: user-management
 spec:
   replicas: 1
   selector:
@@ -17,27 +22,79 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: metube-user
+          image: userservice:1
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
               cpu: 100m
             limits:
-              memory: 256Mi
-              cpu: 500m
+              memory: 512Mi  # Increased memory limit
+              cpu: 500m      # Increased CPU limit
           ports:
-            - containerPort: 5000
+            - containerPort: 8080  # FIXED: Changed from 5000 to 8080
+              name: http
           env:
             - name: DB_CONNECTION_STRING
-              value: "Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True"
-          volumeMounts:
-            - name: data
-              mountPath: /app/data
-      volumes:
-        - name: data
-          emptyDir: {}
+              value: Server=metube-user-db,1433;Database=MeTubeUserDb;User Id=sa;Password=YourSecretPass123;TrustServerCertificate=True;
+          # More lenient health checks with longer timeouts
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080  # FIXED: Changed from 5000 to 8080
+            initialDelaySeconds: 60     # Increased from 30
+            periodSeconds: 30           # Increased from 10
+            timeoutSeconds: 10          # Increased from 5
+            failureThreshold: 5         # Added explicit failure threshold
+          # Optional readiness probe - commented out for initial deployment
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health
+          #     port: 8080  # FIXED: Changed from 5000 to 8080
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 10
+          #   timeoutSeconds: 5
+          #   failureThreshold: 3
 
 ---
+# Primary Service - External access point for UserService
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice
+  labels:
+    app: userservice
+spec:
+  selector:
+    app: userservice
+  type: LoadBalancer  
+  ports:
+    - protocol: TCP
+      port: 5000            # Keep external port as 5000
+      targetPort: 8080      # FIXED: Changed from 5000 to 8080
+      name: http
+
+---
+# Additional Service - For internal Gateway communication with consistent naming
+apiVersion: v1
+kind: Service
+metadata:
+  name: metube-user
+  labels:
+    app: userservice
+    purpose: gateway-communication
+spec:
+  selector:
+    app: userservice
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5000            # Keep external port as 5000
+      targetPort: 8080      # FIXED: Changed from 5000 to 8080
+      name: http
+
+---
+# Autoscaler - Automatically adjusts replica count based on load
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -62,7 +119,7 @@ metadata:
         target: 
           type: Utilization
           averageUtilization: 70
-  behvarior:
+  behavior:
       scaleDown:
         stabilizationWindowSeconds: 300
         policies:

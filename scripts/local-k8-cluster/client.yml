@@ -15,7 +15,7 @@ spec:
       containers:
         - name: client
           image: client:1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
@@ -53,7 +53,7 @@ spec:
     - name: http
       protocol: TCP
       port: 5020
-      targetPort: 5020
+      targetPort: 8080
   type: LoadBalancer
 
 ---
@@ -81,7 +81,7 @@ spec:
         target: 
           type: Utilization
           averageUtilization: 70
-  behvarior:
+  behavior:
       scaleDown:
         stabilizationWindowSeconds: 300
         policies:
