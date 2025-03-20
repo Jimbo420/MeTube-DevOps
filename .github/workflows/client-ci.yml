@@ -34,18 +34,19 @@ jobs:
           cat <<EOF > ci.client.Dockerfile
           FROM mcr.microsoft.com/dotnet/sdk:9.0
           WORKDIR /app
-          EXPOSE 8080
-          
-          COPY MeTube-DevOps.Client/*.csproj MeTube-DevOps.Client/
-          COPY MeTube-DevOps.Client/MeTube-DevOps.Client.sln .
 
+          # Copy solution and project files first
+          COPY MeTube-DevOps.Client/*.sln ./
+          COPY MeTube-DevOps.Client/MeTube-DevOps.Client/*.csproj ./MeTube-DevOps.Client/
+
+          # Restore dependencies
           RUN dotnet restore
 
+          # Copy the rest of the code
           COPY . .
 
-          ENV ASPNETCORE_URLS=http://+:8080
-
-          CMD ["dotnet", "run", "--project", "MeTube-DevOps.Client/MeTube-DevOps.Client.csproj"]
+          # Build the project
+          RUN dotnet build MeTube-DevOps.Client --configuration Release
           EOF
 
       - name: Build Docker image
