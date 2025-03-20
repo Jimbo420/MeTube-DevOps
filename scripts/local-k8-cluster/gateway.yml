@@ -16,13 +16,13 @@ spec:
       - name: gateway
         image: gateway:1
         imagePullPolicy: Never
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 256Mi
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   limits:
+        #     cpu: 250m
+        #     memory: 256Mi
         env:
         - name: METUBE_GATEWAY_PORT
           value: "8080"
@@ -32,7 +32,6 @@ spec:
           value: "metube-user"
         - name: METUBE_USERSERVICE_PORT
           value: "8080"
-
         ports:
         - containerPort: 5010
 ---
@@ -50,43 +49,43 @@ spec:
       port: 5010
       targetPort: 8080
 
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: hpa-gateway
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: gateway
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target: 
-          type: Utilization
-          averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target: 
-          type: Utilization
-          averageUtilization: 70
-  behavior:
-      scaleDown:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-      scaleUp:
-        stabilizationWindowSeconds: 300
-        policies:
-          - type: Pods
-            value: 5
-            periodSeconds: 300
-        selectPolicy: Max
+# ---
+# apiVersion: autoscaling/v2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   name: hpa-gateway
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: gateway
+#   minReplicas: 1
+#   maxReplicas: 5
+#   metrics:
+#     - type: Resource
+#       resource:
+#         name: cpu
+#         target: 
+#           type: Utilization
+#           averageUtilization: 70
+#     - type: Resource
+#       resource:
+#         name: memory
+#         target: 
+#           type: Utilization
+#           averageUtilization: 70
+#   behavior:
+#       scaleDown:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 5
+#             periodSeconds: 300
+#       scaleUp:
+#         stabilizationWindowSeconds: 300
+#         policies:
+#           - type: Pods
+#             value: 5
+#             periodSeconds: 300
+#         selectPolicy: Max
           

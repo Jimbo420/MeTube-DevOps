@@ -81,6 +81,7 @@ app.MapGet("/health", () => new {
 });
 
 // Fix: Use the correct configuration key for the port
-int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT", 8080);
+//int GATEWAY_PORT = app.Configuration.GetValue<int>("GATEWAY_PORT", 8080);
+int GATEWAY_PORT = 8080;
 Console.WriteLine($"Microservice online and listening on port {GATEWAY_PORT}.");
 app.Run($"http://0.0.0.0:{GATEWAY_PORT}");
