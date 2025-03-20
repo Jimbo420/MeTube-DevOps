@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: userservice
-          image: metube-user
+          image: userservice:1
+          imagePullPolicy: Never
           resources:
             requests:
               memory: 128Mi
@@ -36,6 +37,20 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userservice
+spec:
+  selector:
+    app: userservice
+  type: ClusterIP  
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 8080
 
 ---
 apiVersion: autoscaling/v2

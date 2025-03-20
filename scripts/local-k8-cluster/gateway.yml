@@ -15,7 +15,7 @@ spec:
       containers: 
       - name: gateway
         image: gateway:1
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         resources:
           requests:
             cpu: 100m
@@ -48,7 +48,7 @@ spec:
   ports:
     - protocol: TCP
       port: 5010
-      targetPort: 5010
+      targetPort: 8080
 
 ---
 apiVersion: autoscaling/v2
