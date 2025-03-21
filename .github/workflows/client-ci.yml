@@ -3,12 +3,12 @@ name: Client CI Pipeline
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - MeTube-DevOps.Client/**
   pull_request:
     branches:
-      - main
+      - master
     paths:
       - MeTube-DevOps.Client/**
   workflow_dispatch:
