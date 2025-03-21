@@ -211,35 +211,82 @@ Autoscaling definitions are in userservice.yml.
 ### Sprint 2
 #### Planning
 - **Sprint Backlog**:
-  - *User Story 1*: As a user, I want to be able to log out so that I'm logged out.
-  - *User Story 2*: As an admin, I want to create, read, update, and delete user accounts so that I can manage users in the system.
-  - *User Story 3*: As an authenticated user I want to manage my videos so that I can upload and delete them.
-  - *User Story 4*: As an unauthenticated and authenticated user I want to be able to access videos so that I can watch them.
-  - *User Story 5*: As a user, I want metadata about the video to be stored in persistent storage when a video is uploaded and removed when the video is deleted, so that I can efficiently manage and retrieve video information.
-  - *User Story 6*: As an unauthenticated or authenticated user, I want to view a list of video metadata, so that I can quickly determine which videos are of interest to me before deciding to watch or take further action.
+  - *User Story 1*: As a developer i need tests and github actions to be implemented in User microservice.
 
 #### Review
 - **Completed**:
-  - *User Story 1*: Log out function implemented.
-  - *User Story 2*: Admin account and functionality created and able to use CRUD operations in account management.
-  - *User Story 3*: Video management and uploading functionality for users implemented.
-  - *User Story 4*: Viewing of video content implemented.
-  - *User Story 5*: Metadata implemented in the database and is deleted when video is deleted.
-  - *User Story 6*: The client side still had CRUD functionality (list) left to implement but, we implemented it before the start of sprint 2.
+  
 - **Not Completed**:
-  - All user stories completed by the start of the next sprint.
+  - Problems with implementing CI.
 - **Issues**:
-  - Problems with working vertically.
+  - Issues with creating Unit and Integration tests.
 
 #### Retrospective
 - **What went well**:
-  - We basically managed to complete all user stories.
-  - We did a lot, in a very short time span.
+  - 
+  - 
 - **What could be improved**:
-  - We bit off more than we could chew.
-  - We should work on less user stories during our rather short sprints.
+  - 
+  - 
 - **Amendments to process**:
-  - Shorten the user stories during the next sprint.
-  - Put less user stories in the Sprint Backlog.
+  - 
+  - 
 
 ---
+
+### Sprint 3
+#### Planning
+- **Sprint Backlog**:
+  - *User Story 1*: As a developer i need tests and github actions to be implemented in User microservice.
+
+#### Review
+- **Completed**:
+  - *User Story 1*: We managed to get all Unit tests and Integration tests to work.
+  
+- **Not Completed**:
+
+- **Issues**:
+  - We had problems creating Images and Containers in Docker Desktop.
+  - Kubernetes issues.
+
+#### Retrospective
+- **What went well**:
+  - 
+  - 
+- **What could be improved**:
+  - 
+  - 
+- **Amendments to process**:
+  - 
+  - 
+
+---
+
+### Sprint 4
+#### Planning
+- **Sprint Backlog**:
+  - *User Story 1*: As a developer I want to create more microservices.
+
+#### Review
+- **Completed**:
+  - *User Story 1*: We managed to get all microservices up and running.
+  
+- **Not Completed**:
+  - Everything go completed. We reached our goal of delivering the UserService, Gateway and Client.
+
+- **Issues**:
+  - We had problems creating Images and Containers in Docker Desktop.
+  - Kubernetes issues.
+  - Terraform not working with github, but we fixed it.
+  - CD Secrets.
+
+#### Retrospective
+- **What went well**:
+  - 
+  - 
+- **What could be improved**:
+  - 
+  - 
+- **Amendments to process**:
+  - 
+  - 
