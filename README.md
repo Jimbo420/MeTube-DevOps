@@ -40,6 +40,108 @@ Screenshot of the Login page:
 
 This is where you input you user information to login.
 
+## Infrastructure as Code
+Our infrastructure is managed using Terraform with Azure as the cloud provider.
+
+**Prerequisites**
+- Terraform CLI installed
+- Azure CLI installed and authenticated
+- Subscription ID for your Azure account
+
+**Deployment Steps**
+1. Set your Azure subscription ID:
+```bash
+$env:TF_VAR_subscription_id = "your-subscription-id"
+```
+
+2. Initialize Terraform:
+```bash
+cd terraform
+terraform init
+```
+
+3. Deploy the infrastructure:
+```bash
+terraform apply
+```
+
+4. Retrieve the outputs:
+```bash
+terraform output
+```
+  Note the container registry hostname, username, and other outputs for use in deployment.
+
+**Teardown**
+To destroy the infrastructure:
+```bash
+terraform destroy
+```
+
+## CI/CD Pipeline
+Our continuous integration and delivery pipeline is implemented using GitHub Actions.
+
+### Pipeline Workflow
+
+1. **Trigger**: The pipeline is triggered on:
+- Push to master branch
+- Pull request to master branch
+- Manual dispatch via GitHub Actions UI
+
+2. **Integration Phase**:
+- Builds the application
+- Runs unit tests
+- Runs integration tests with SQL Server in Docker
+- Lints the code
+
+3. **Delivery Phase** (on successful merge to master):
+- Builds Docker images
+- Pushes images to Azure Container Registry
+- Updates Kubernetes deployments
+
+### Workflow Files
+- userservice-ci.yml: CI pipeline for UserService
+- .github/workflows/cd-workflow.yml: CD pipeline for deployment
+
+## Application Programming Interface (API)
+
+### UserService API
+
+**User Management**
+
+- **GET /api/User/manageUsers**
+  - Returns a list of all users
+  - Requires: Admin authentication
+  - Response: Array of user objects
+ 
+- **POST /api/User/signup**
+  - Creates a new user account
+  - Request Body:
+```bash
+{
+  "username": "string",
+  "password": "string",
+  "email": "string",
+  "role": "string"
+}
+```
+  - Response: Created user object
+
+- **POST /api/User/login**
+  - Authenticates a user
+  - Request Body:
+```bash
+{
+  "username": "string",
+  "password": "string"
+}
+```
+  - Response: Authentication token
+
+
+
+
+
+
 ### Sprint 1
 #### Planning
 - **Sprint Backlog**:
