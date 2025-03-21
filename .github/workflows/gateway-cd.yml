@@ -1,0 +1,70 @@
+name: Deploy MeTube Gateway to Azure (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dockerUsername:
+        description: 'Docker Hub Username'
+        required: true
+        default: 'abdriano'
+      dockerPassword:
+        description: 'Docker Hub Password'
+        required: true
+      kubeconfig:
+        description: 'Base64-encoded kubeconfig file'
+        required: true
+      imageVersion:
+        description: 'Image Version'
+        required: true
+        default: 'latest'
+
+env:
+  REGISTRY_HOST: ${{ github.event.inputs.dockerUsername }}
+  REGISTRY_USERNAME: ${{ github.event.inputs.dockerUsername }}
+  IMAGE_NAME: gateway
+  MICROSERVICE_NAME: gateway
+  MICROSERVICE_DIRECTORY: MeTube-GateWay
+  DOCKERFILE_NAME: Dockerfile-Gateway-dev
+  K8S_MANIFEST_PATH: ./scripts/local-k8-cluster/gateway.yml
+  IMAGE_VERSION: ${{ github.event.inputs.imageVersion }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Docker Login
+        run: |
+          echo "${{ github.event.inputs.dockerPassword }}" | docker login -u "${{ github.event.inputs.dockerUsername }}" --password-stdin
+      
+      - name: Build image
+        run: |
+          chmod +x ./scripts/ci-cd/build-image.sh
+          ./scripts/ci-cd/build-image.sh
+      
+      - name: Push image
+        run: |
+          chmod +x ./scripts/ci-cd/push-image.sh
+          ./scripts/ci-cd/push-image.sh
+        env:
+          REGISTRY_PASSWORD: ${{ github.event.inputs.dockerPassword }}
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure kubectl
+        run: |
+          mkdir -p ~/.kube
+          # The tr command removes any whitespace that might have been added
+          echo "${{ github.event.inputs.kubeconfig }}" | tr -d ' ' | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+          # Verify context
+          kubectl config current-context
+      
+      - name: Deploy to AKS
+        run: |
+          chmod +x ./scripts/ci-cd/deploy.sh
+          ./scripts/ci-cd/deploy.sh
