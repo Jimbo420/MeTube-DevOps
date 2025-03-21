@@ -1,0 +1,69 @@
+name: Integrate MeTube-DevOps.GateWay
+
+on:
+  push:
+    branches: [userservice-backend-microservice]
+    paths:
+      - MeTube-GateWay/**
+  pull_request:
+    branches: [userservice-backend-microservice]
+    paths:
+      - MeTube-GateWay/**
+  workflow_dispatch:
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Docker Installation
+        run: |
+          echo "Docker version:"
+          docker --version
+
+          echo "Docker info:"
+          docker info
+
+          echo "Docker Compose version:"
+          docker compose version
+
+          echo "Verify Docker is running:"
+          docker run --rm hello-world
+
+      - name: Create Unit Test Dockerfile
+        run: |
+          cd MeTube-GateWay
+          cat > ci.unittest.Dockerfile << EOF
+          FROM mcr.microsoft.com/dotnet/sdk:9.0
+          WORKDIR /app
+
+          # Kopiera projektfiler och lösning
+          COPY MeTube-Gateway/*.csproj ./MeTube-Gateway/
+          COPY MeTube-GateWay.UnitTests/*.csproj ./MeTube-GateWay.UnitTests/
+          COPY ./MeTube-GateWay.IntegrationTests/*.csproj ./MeTube-GateWay.IntegrationTests/
+          COPY MeTube.GateWay.sln .
+
+          # Restore dependencies
+          RUN dotnet restore MeTube.GateWay.sln
+
+          # Kopiera resten av koden
+          COPY . .
+
+          # Kör enhetstester
+          CMD ["dotnet", "test", "MeTube-GateWay.UnitTests"]
+          CMD ["dotnet", "test", "MeTube-GateWay.IntegrationTests"]
+          EOF
+
+      - name: Run Unit Tests via Docker
+        run: |
+          cd MeTube-GateWay
+          docker build -t gateway-test -f ci.unittest.Dockerfile .
+          docker run --rm gateway-test
+
+      - name: Cleanup
+        if: always()
+        run: |
+          cd MeTube-GateWay
+          docker system prune -f

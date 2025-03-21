@@ -43,6 +43,7 @@ public class GatewayController : ControllerBase
         return Ok(content);
     }
 
+    // POST: login to the microservice UserService
     [HttpPost("user/login")]
     public async Task<IActionResult> UserLogin([FromBody] LoginDto request)
     {
