@@ -58,8 +58,11 @@ jobs:
       - name: Configure kubectl
         run: |
           mkdir -p ~/.kube
-          echo "${{ github.event.inputs.kubeconfig }}" | base64 -d > ~/.kube/config
+          # The tr command removes any whitespace that might have been added
+          echo "${{ github.event.inputs.kubeconfig }}" | tr -d ' ' | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
+          # Verify context
+          kubectl config current-context
       
       - name: Deploy to AKS
         run: |
