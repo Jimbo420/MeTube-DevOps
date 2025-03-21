@@ -25,6 +25,7 @@ namespace MeTube_DevOps.Client
             // if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_CLIENT_PORT"))) {
             //     throw new Exception("Please specify the port number for METUBE.Client with the environment variable METUBE_CLIENT_PORT.");
             // }
+            // if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("METUBE_PUBLIC_GATEWAY_PORT"))) {
             
 
             var clientPort = Environment.GetEnvironmentVariable("METUBE_CLIENT_PORT") ?? "8080";  
