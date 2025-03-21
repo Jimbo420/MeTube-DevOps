@@ -49,6 +49,8 @@ jobs:
         run: |
           chmod +x ./scripts/ci-cd/push-image.sh
           ./scripts/ci-cd/push-image.sh
+        env:
+          REGISTRY_PASSWORD: ${{ github.event.inputs.dockerPassword }}
       
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
