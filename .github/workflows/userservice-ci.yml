@@ -3,11 +3,11 @@ name: Integrate MeTube-DevOps.UserService
 
 on:
   push:
-    branches: [userservice-backend-microservice]
+    branches: main
     paths:
       - MeTube-DevOps.UserService/**
   pull_request:
-    branches: [userservice-backend-microservice]
+    branches: main
     paths:
       - MeTube-DevOps.UserService/**
   workflow_dispatch:

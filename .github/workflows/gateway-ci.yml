@@ -2,11 +2,11 @@ name: Integrate MeTube-DevOps.GateWay
 
 on:
   push:
-    branches: [userservice-backend-microservice]
+    branches: main
     paths:
       - MeTube-GateWay/**
   pull_request:
-    branches: [userservice-backend-microservice]
+    branches: main
     paths:
       - MeTube-GateWay/**
   workflow_dispatch:
